@@ -15,7 +15,7 @@ class RequestRelation():
         self.result = None
 
     def validate(self):
-        celery_pubsub.subscribe('auth.cookies.results', awaitReturn(self))
+        celery_pubsub.subscribe('auth.cookies.requests', awaitReturn(self))
         cookies_validate.apply_async(kwargs={
             'access_cookie':self.request.COOKIES.get(SIMPLE_JWT['ACCESS_COOKIE'], ''),
             'refresh_cookie':self.request.COOKIES.get(SIMPLE_JWT['ACCESS_COOKIE'], ''), 
