@@ -18,7 +18,7 @@ class DateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-@router.post("/create/")
+@router.post("/create")
 async def create(request, payload: schemas.VacancyInScheme):
     await models.Vacancy.objects.acreate(**payload.dict())
     return {"success":True}
@@ -37,15 +37,18 @@ def update_object(vacancy):
 async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
     is_changed = False
     vacancy = await sync_to_async(models.Vacancy.objects.get)(id=vacancy_id)
-
+    
     for attr, value in payload.dict().items():
-        print(getattr(vacancy, attr),type(getattr(vacancy, attr)) , value, type(value), value!=getattr(vacancy, attr))
+        #print(getattr(vacancy, attr), type(getattr(vacancy, attr)) , value, type(value), value!=getattr(vacancy, attr))
+        
         if(getattr(vacancy, attr) != value):
+            print(value)
             is_changed = True
             setattr(vacancy, attr, value)
 
     if is_changed:
         setattr(vacancy, 'updated_at', str(datetime.now()))
+        print(vacancy._meta.fields)
         await update_object(vacancy)
         return {"success":True}
     else:

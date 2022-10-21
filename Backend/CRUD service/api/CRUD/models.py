@@ -2,6 +2,9 @@ from djongo import models
 from .mixins import MongoDBMixin
 from datetime import datetime
 from .embedded.vacancy_embedded import *
+from .embedded.cv_embedded import *
+
+
 
 
 class ApplicantProfile(MongoDBMixin):
@@ -65,14 +68,20 @@ class HRProfile(MongoDBMixin):
 
 
 class CV(MongoDBMixin):
-    userId = models.CharField(max_length=100,  default='')
-    body = models.CharField(max_length=1000,  default='Body')
-    position = models.CharField(max_length=100,  default='Position')
-    work_experience = models.IntegerField(default='')
-    required_salary = models.IntegerField(default='')
+    '''Модель поста с резюме'''
+
+
+    userId = models.CharField(max_length=100,  null=False)
+    higher_education = models.EmbeddedField(
+        model_container = EducationEmbedded
+    )
+    cvs = models.EmbeddedField(
+        model_container = CVEmbedded
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
-    tech_stack = models.CharField(max_length=500)
+
 
     class Meta:
         ordering = ['-created_at']
@@ -80,13 +89,16 @@ class CV(MongoDBMixin):
 
 
 class Vacancy(MongoDBMixin):
-    companyId = models.CharField(max_length=100,  default='')
+    '''Модель поста с вакансией'''
+
+
+    companyId = models.CharField(max_length=100,  null=False)
     title = models.CharField(max_length=100, default='')
     body = models.CharField(max_length=10000, default='')
     higher_education = models.BooleanField(default=False)
     relocation_help = models.BooleanField(default=False)
     required_work_experiance = models.IntegerField(default=0)
-    required_skills = models.CharField(max_length=500, default='')
+    required_skills = models.JSONField()
     work_schedule = models.EmbeddedField(
         model_container = WorkScheduleEmbedded
     )

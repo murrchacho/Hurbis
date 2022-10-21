@@ -15,17 +15,9 @@ class TechStackEmbedded(models.Model):
         abstract=True
 
 
-class SalaryRangeEmbedded(models.Model):
-    frm = models.IntegerField(default=0),
-    to = models.IntegerField(default=0)
-
-    class Meta:
-        abstract=True
-
 class SalaryEmbedded(models.Model):
-    salary_level = models.EmbeddedField(
-        model_container = SalaryRangeEmbedded
-    )
+    frm = models.IntegerField(default=0)
+    to = models.IntegerField(default=0)
     currency = models.CharField(max_length=3,  default='RUB')
 
     class Meta:

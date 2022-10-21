@@ -1,5 +1,3 @@
-from datetime import datetime
-from locale import currency
 from ninja import Schema
 
 
@@ -16,14 +14,10 @@ class LocationScheme(Schema):
     address: str
 
 
-class SalaryRangeScheme(Schema):
+class SalaryScheme(Schema):
+    currency: str
     frm: int
     to: int
-
-
-class SalaryScheme(Schema):
-    salary_level: SalaryRangeScheme = None
-    currency: str
 
 
 class InterviewScheme(Schema):
@@ -51,7 +45,7 @@ class VacancyInScheme(Schema):
     required_work_experiance: int
     salary: SalaryScheme 
     location: LocationScheme 
-    required_skills: dict 
+    required_skills: dict
     work_schedule: WorkScheduleScheme 
     interview: InterviewScheme 
 
