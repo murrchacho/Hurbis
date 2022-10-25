@@ -12,4 +12,7 @@ DATABASES = {
         'HOST': '',
         'PORT': '',
         },
+    'applicants':{},
+    'companies':{},
+    'hrs':{}
 }
