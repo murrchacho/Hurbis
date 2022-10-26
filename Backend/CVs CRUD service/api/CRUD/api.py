@@ -17,38 +17,46 @@ class DateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-@router.post("/create")
-async def create(request, payload: schemas.VacancyInScheme):
-    await models.Vacancy.objects.acreate(**payload.dict())
+@router.post("")
+def create(request, payload: schemas.CVInScheme):
+    cv = models.CV()
+    for attr, value in payload.dict().items():
+        print(attr, value)
+        setattr(cv, attr, value)
+        #
+
+        
+    cv.save()
+    #await models.CV.objects.acreate(**payload.dict().items())
     return {"success":True}
 
 
-@router.get("/read", response=List[schemas.VacancyOutScheme])
+@router.get("", response=List[schemas.CVOutScheme])
 async def read(request):
-    return await sync_to_async(list)(models.Vacancy.objects.all())
+    return await sync_to_async(list)(models.CV.objects.all())
     
     
 @sync_to_async
-def update_object(vacancy):
-    return vacancy.save()
+def update_object(CV):
+    return CV.save()
 
-@router.put("/update/{vacancy_id}")
-async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
+@router.put("/{CV_id}")
+async def update(request, CV_id:int, payload: schemas.CVInScheme):
     is_changed = False
-    vacancy = await sync_to_async(models.Vacancy.objects.get)(id=vacancy_id)
+    CV = await sync_to_async(models.CV.objects.get)(id=CV_id)
     for attr, value in payload.dict().items():
-        if(getattr(vacancy, attr) != value):
+        if(getattr(CV, attr) != value):
             is_changed = True
-            setattr(vacancy, attr, value)
+            setattr(CV, attr, value)
     if is_changed:
-        setattr(vacancy, 'updated_at', str(datetime.now()))
-        await update_object(vacancy)
+        setattr(CV, 'updated_at', str(datetime.now()))
+        await update_object(CV)
         return {"success":True}
     else:
         return {"success":False, "description":"Nothing to update"}
 
 
-@router.delete("/delete/{vacancy_id}")
-async def delete(request, vacancy_id:int):
-    await models.Vacancy.objects.filter(id=vacancy_id).adelete()
+@router.delete("/{CV_id}")
+async def delete(request, CV_id:int):
+    await models.CV.objects.filter(id=CV_id).adelete()
     return {"success":True}

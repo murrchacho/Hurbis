@@ -46,7 +46,8 @@ class InterviewEmbedded(models.Model):
 
 class WorkEmbedded(models.Model):
     company_name = models.CharField(max_length=50, default='')
-    experiance = models.IntegerField(default=0)    
+    experience = models.IntegerField(default=0)
+    description = models.CharField(max_length=500, default='')
 
     class Meta:
         abstract=True

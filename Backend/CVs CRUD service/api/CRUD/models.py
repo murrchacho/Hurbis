@@ -9,7 +9,7 @@ from .embedded import *
 class CV(MongoDBMixin):
     '''Модель поста с резюме'''
 
-    userId = models.CharField(max_length=100, null=False)
+    user_id = models.CharField(max_length=100, null=False)
     body = models.CharField(max_length=10000, default='')
     position = models.EmbeddedField(
         model_container = PositionEmbedded
@@ -23,10 +23,10 @@ class CV(MongoDBMixin):
     location = models.EmbeddedField(
         model_container = LocationEmbedded
     )
-    higher_education = models.EmbeddedField(
+    higher_education = models.ArrayField(
         model_container = EducationEmbedded
     )
-    work_experience = models.EmbeddedField(
+    work_experience = models.ArrayField(
         model_container = WorkEmbedded
     )
     relocation_ready_country = models.BooleanField(default=False)

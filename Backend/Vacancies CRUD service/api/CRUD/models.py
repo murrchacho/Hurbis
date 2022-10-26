@@ -9,7 +9,11 @@ from .embedded import *
 class Vacancy(MongoDBMixin, ):
     '''Модель поста с вакансией'''
 
-    userId = models.CharField(max_length=100, null=False)
+    user_id = models.CharField(max_length=100, null=False)
+    body = models.CharField(max_length=10000, default='')
+    position = models.EmbeddedField(
+        model_container = PositionEmbedded
+    )
     higher_education = models.BooleanField(default=False)
     relocation_help = models.BooleanField(default=False)
     required_work_experiance = models.IntegerField(default=0)
@@ -19,7 +23,15 @@ class Vacancy(MongoDBMixin, ):
     interview = models.EmbeddedField(
         model_container = InterviewEmbedded
     )
-
+    required_skills = models.ArrayField(
+        model_container = SkillsEmbedded
+    )
+    salary = models.EmbeddedField(
+        model_container = SalaryEmbedded
+    )
+    location = models.EmbeddedField(
+        model_container = LocationEmbedded
+    )
     created_at = models.DateTimeField(default=datetime.now, null=False)
     updated_at = models.DateTimeField(null=True)
 

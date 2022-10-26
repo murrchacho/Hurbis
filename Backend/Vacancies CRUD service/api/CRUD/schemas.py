@@ -35,9 +35,13 @@ class WorkScheduleScheme(Schema):
     remote_schedule: CommonScheduleScheme
 
 
+class SkillsScheme(Schema):
+    skill: str
+    level: str
+
+
 class VacancyInScheme(Schema):
-    companyId: str
-    title: str
+    user_id: str
     body: str
     position: PositionScheme
     higher_education: bool
@@ -45,12 +49,9 @@ class VacancyInScheme(Schema):
     required_work_experiance: int
     salary: SalaryScheme 
     location: LocationScheme 
-    required_skills: dict
+    required_skills: list[SkillsScheme]
     work_schedule: WorkScheduleScheme 
     interview: InterviewScheme 
-
-
-
     #ToDo: @validator
 
 
