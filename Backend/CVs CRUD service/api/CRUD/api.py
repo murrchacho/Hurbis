@@ -18,16 +18,12 @@ class DateTimeEncoder(json.JSONEncoder):
 
 
 @router.post("")
-def create(request, payload: schemas.CVInScheme):
-    cv = models.CV()
-    for attr, value in payload.dict().items():
-        print(attr, value)
-        setattr(cv, attr, value)
-        #
-
-        
-    cv.save()
-    #await models.CV.objects.acreate(**payload.dict().items())
+async def create(request, payload: schemas.CVInScheme):
+    #cv = models.CV()
+    #for attr, value in payload.dict().items():
+    #    setattr(cv, attr, value)
+    #cv.save()
+    await models.CV.objects.acreate(**payload.dict())
     return {"success":True}
 
 
