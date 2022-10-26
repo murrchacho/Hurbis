@@ -13,7 +13,7 @@ from api.settings import settings
 import jwt
 from .models import *
 import uuid
-
+from django.http import JsonResponse
 
 
 User = get_user_model()
@@ -26,6 +26,7 @@ def registration(request, payload: schemas.RegistrationInScheme):
     user = User(username=credentials.get('username'))
     password = credentials.get('password')
     user.set_password(password)
+    user.email = credentials.get("email")
     user.save()
     return {"success":True}
     
@@ -39,6 +40,19 @@ def login(request, payload: schemas.LoginInScheme):
     if user:
         csrf.get_token(request)
         return set_tokens_for_user(user)
+
+
+@router.post('/check-cookies')
+def account_type(request):
+    userid = jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
+    user = User.objects.get(id=userid)
+    if user.profile_type == 'company':
+        return JsonResponse({"username": user.username, "type": "company"})
+    if user.profile_type == 'hr':
+        return JsonResponse({"username": user.username, "type": "hr"})
+    if user.profile_type == 'applicant':
+        return JsonResponse({"username": user.username, "type": "applicant"})
+    return {"success": False}
 
 
 @router.post('/account-type')

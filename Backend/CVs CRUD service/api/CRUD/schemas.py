@@ -36,7 +36,6 @@ class SkillsScheme(Schema):
     level: str
 
 class CVInScheme(Schema):
-    user_id: str
     body: str
     position: PositionScheme
     higher_education: list[HigherEducationScheme]

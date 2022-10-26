@@ -41,7 +41,6 @@ class SkillsScheme(Schema):
 
 
 class VacancyInScheme(Schema):
-    user_id: str
     body: str
     position: PositionScheme
     higher_education: bool

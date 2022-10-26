@@ -5,6 +5,8 @@ from typing import List
 from asgiref.sync import sync_to_async
 import json
 from django.http import HttpResponse
+import aiohttp
+
 
 
 
@@ -19,13 +21,17 @@ class DateTimeEncoder(json.JSONEncoder):
 
 @router.post("")
 async def create(request, payload: schemas.CVInScheme):
-    #cv = models.CV()
-    #for attr, value in payload.dict().items():
-    #    setattr(cv, attr, value)
-    #cv.save()
-    await models.CV.objects.acreate(**payload.dict())
-    return {"success":True}
-
+    cookies = request.COOKIES
+    async with aiohttp.ClientSession() as session:
+        async with session.post('http://localhost:8000/api/auth/check-cookies', cookies=cookies) as resp:
+            user_info = await resp.json()
+    
+    if user_info.get("type")=="applicant":
+        info = payload.dict()
+        info['user_id'] = user_info.get("username")
+        await models.CV.objects.acreate(**info)
+        return {"success":True}
+    return {"success":False}
 
 @router.get("", response=List[schemas.CVOutScheme])
 async def read(request):

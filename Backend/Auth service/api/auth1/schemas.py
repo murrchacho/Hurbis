@@ -6,7 +6,7 @@ from ninja import Schema
 class RegistrationInScheme(Schema):
     username: str
     password: str
-
+    email: str
 
 class LoginInScheme(Schema):
     username: str
