@@ -1,0 +1,6 @@
+export {default as Chat} from './chatComponent'
+export {default as Login} from './loginComponent'
+export {default as Vacancies} from './vacanciesComponent'
+export {default as Homepage} from './homepageComponent'
+export {default as Error} from './errorComponent'
+export {default as Layout} from './layoutComponent'

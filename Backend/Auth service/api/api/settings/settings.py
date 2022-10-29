@@ -19,7 +19,6 @@ load_dotenv(dotenv_path)
 
 from pathlib import Path
 from .databases_settings import *
-from .celery_settings import *
 from .jwt import *
 from datetime import timedelta
 
