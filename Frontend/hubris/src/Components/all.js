@@ -1,5 +1,6 @@
 export {default as Chat} from './ChatComponent'
 export {default as Login} from './LoginComponent'
+export {default as Logout} from './LogoutComponent'
 export {default as Vacancies} from './VacanciesComponent'
 export {default as Homepage} from './HomepageComponent'
 export {default as Error} from './ErrorComponent'

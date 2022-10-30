@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '../hooks/All';
 
-axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-axios.defaults.xsrfCookieName = "csrftoken";
 
 const RequireAuth = ({children}) => {
-    const navigate = useNavigate();
-    const locaiton = useLocation();
-    const auth = false;
+    const location = useLocation();
+    const {data} = useAuth();
 
-    if(!auth) {
+    if(!data.user) {
         return <Navigate to='/login' state={{from: location}} />
     }
   
@@ -18,4 +16,4 @@ const RequireAuth = ({children}) => {
   };
   
   
-  export default RequireAuth
+export default RequireAuth

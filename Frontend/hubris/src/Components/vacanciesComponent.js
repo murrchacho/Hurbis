@@ -41,7 +41,6 @@ const Vacancies = () => {
           </li>
         ))}
       </ul>
-
       <input type="text" onChange={handleMessageChange}></input>
       <button onClick={() => createVacancy({ text })}>Создать</button>
     </div>

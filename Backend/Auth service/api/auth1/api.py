@@ -42,6 +42,11 @@ def login(request, payload: schemas.LoginInScheme):
         return set_tokens_for_user(user)
 
 
+@router.post('/logout')
+def logout(request):
+    return HttpResponse("Сделаем вид, что мы инвалидировали текущие куки =)")
+
+
 @router.post('/check-cookies')
 def account_type(request):
     userid = jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
@@ -80,15 +85,13 @@ def account_type(request, payload: schemas.AccountTypeScheme):
     return {"success":False}
 
 
-
 def set_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     data = {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
-    response = HttpResponse()
-    
+    response = JsonResponse({"user":user.username, "type":user.profile_type})
     #redis_instance.set(user.id, data["refresh"])
     response = set_cookie(response, 'access' , 'ACCESS_COOKIE', 'ACCESS_TOKEN', data)
     response = set_cookie(response, 'refresh', 'REFRESH_COOKIE', 'ACCESS_TOKEN', data)
@@ -101,8 +104,8 @@ def set_cookie(response, type, cookie_name, token_name, data):
             key = settings.SIMPLE_JWT[cookie_name],  
             value = data[type],
             expires = settings.SIMPLE_JWT[f'{token_name}_LIFETIME'],
-            #secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
             httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-            #samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-                        )
+            samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+            )
     return response
