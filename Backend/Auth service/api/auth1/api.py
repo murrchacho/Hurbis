@@ -1,6 +1,5 @@
+from collections import UserList
 import os
-from datetime import datetime
-import profile
 from ninja import Router
 from django.middleware import csrf
 from . import schemas
@@ -9,11 +8,14 @@ from django.http import HttpResponse
 from ninja_jwt.tokens import RefreshToken
 #from redis.instance import redis_instance
 from django.contrib.auth import get_user_model
-from api.settings import settings
+from api.settings_folder import settings
 import jwt
 from .models import *
 import uuid
 from django.http import JsonResponse
+
+
+
 
 
 User = get_user_model()
@@ -49,15 +51,13 @@ def logout(request):
 
 @router.post('/check-cookies')
 def account_type(request):
-    userid = jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
-    user = User.objects.get(id=userid)
-    if user.profile_type == 'company':
-        return JsonResponse({"username": user.username, "type": "company"})
-    if user.profile_type == 'hr':
-        return JsonResponse({"username": user.username, "type": "hr"})
-    if user.profile_type == 'applicant':
-        return JsonResponse({"username": user.username, "type": "applicant"})
-    return {"success": False}
+    try:
+        userid = jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
+        user = User.objects.get(id=userid)
+        if user:
+            return JsonResponse({"username": user.username, "type": user.profile_type})
+    except:
+        return JsonResponse({"username": None, "type": None, 'exception': 'Что-то пошло не так'})
 
 
 @router.post('/account-type')

@@ -75,3 +75,10 @@ class SkillsEmbedded(models.Model):
 
     class Meta:
         abstract=True
+
+
+class LikesEmbedded(models.Model):
+    userid = models.CharField(max_length=50, default='')
+
+    class Meta:
+        abstract=True

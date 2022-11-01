@@ -4,8 +4,7 @@ from . import models, schemas
 from typing import List
 from asgiref.sync import sync_to_async
 import json
-from django.http import HttpResponse
-import aiohttp
+from .decorators.compnay_check import company_hr_only
 
 
 
@@ -17,31 +16,26 @@ class DateTimeEncoder(json.JSONEncoder):
             return o.isoformat()
         return json.JSONEncoder.default(self, o)
 
-
+@company_hr_only
 @router.post("")
 async def create(request, payload: schemas.VacancyInScheme):
-    cookies = request.COOKIES
-    async with aiohttp.ClientSession() as session:
-        async with session.post('http://localhost:8000/api/auth/check-cookies', cookies=cookies) as resp:
-            user_info = await resp.json()
-    
-    if user_info.get("type")=="company":
-        info = payload.dict()
-        info['user_id'] = user_info.get("username")
-        await models.Vacancy.objects.acreate(**info)
-        return {"success":True}
-    return {"success":False}
+    data = payload.dict()
+    data['user_id'] = request.user['username']
+    await models.Vacancy.objects.acreate(**data)
+    return {"success":True}
 
-
+@company_hr_only
 @router.get("", response=List[schemas.VacancyOutScheme])
 async def read(request):
-    return await sync_to_async(list)(models.Vacancy.objects.all())
+    await sync_to_async(list)(models.Vacancy.objects.all())
+    return {"success":True}
     
     
 @sync_to_async
 def update_object(vacancy):
     return vacancy.save()
 
+@company_hr_only
 @router.put("/{vacancy_id}")
 async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
     is_changed = False
@@ -58,7 +52,14 @@ async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
         return {"success":False, "description":"Nothing to update"}
 
 
+@company_hr_only
 @router.delete("/{vacancy_id}")
 async def delete(request, vacancy_id:int):
-    await models.Vacancy.objects.filter(id=vacancy_id).adelete()
+    await models.Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
+    return {"success":True}
+
+
+@router.post("/like/{vacancy_id}")
+async def like(request, vacancy_id:int):
+    await models.Vacancy.objects.get(id=vacancy_id)
     return {"success":True}

@@ -32,6 +32,10 @@ class Vacancy(MongoDBMixin, ):
     location = models.EmbeddedField(
         model_container = LocationEmbedded
     )
+    likes = models.ArrayField(
+        model_container = LikesEmbedded
+    )
+    
     created_at = models.DateTimeField(default=datetime.now, null=False)
     updated_at = models.DateTimeField(null=True)
 

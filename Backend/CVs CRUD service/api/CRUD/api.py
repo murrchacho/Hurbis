@@ -62,3 +62,5 @@ async def update(request, CV_id:int, payload: schemas.CVInScheme):
 async def delete(request, CV_id:int):
     await models.CV.objects.filter(id=CV_id).adelete()
     return {"success":True}
+
+

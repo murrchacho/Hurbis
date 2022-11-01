@@ -29,8 +29,12 @@ class CV(MongoDBMixin):
     work_experience = models.ArrayField(
         model_container = WorkEmbedded
     )
+    likes = models.ArrayField(
+        model_container = LikesEmbedded
+    )
     relocation_ready_country = models.BooleanField(default=False)
     relocation_ready_city = models.BooleanField( default=False)
+    
     created_at = models.DateTimeField(default=datetime.now, null=False)
     updated_at = models.DateTimeField(null=True)
 
