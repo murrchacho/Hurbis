@@ -16,16 +16,21 @@ class DateTimeEncoder(json.JSONEncoder):
             return o.isoformat()
         return json.JSONEncoder.default(self, o)
 
-@company_hr_only
-@router.post("")
-async def create(request, payload: schemas.VacancyInScheme):
-    data = payload.dict()
-    data['user_id'] = request.user['username']
-    await models.Vacancy.objects.acreate(**data)
-    return {"success":True}
 
+@router.post("")
 @company_hr_only
+async def create(request, payload: schemas.VacancyInScheme):
+    try:
+        data = payload.dict()
+        data['user_id'] = request.user['username']
+        await models.Vacancy.objects.acreate(**data)
+        return {"success":True}
+    except:
+        return {"success":True}
+
+
 @router.get("", response=List[schemas.VacancyOutScheme])
+@company_hr_only
 async def read(request):
     await sync_to_async(list)(models.Vacancy.objects.all())
     return {"success":True}
@@ -35,8 +40,9 @@ async def read(request):
 def update_object(vacancy):
     return vacancy.save()
 
-@company_hr_only
+
 @router.put("/{vacancy_id}")
+@sync_to_async
 async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
     is_changed = False
     vacancy = await sync_to_async(models.Vacancy.objects.get)(id=vacancy_id)
@@ -52,8 +58,9 @@ async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
         return {"success":False, "description":"Nothing to update"}
 
 
-@company_hr_only
+
 @router.delete("/{vacancy_id}")
+@sync_to_async
 async def delete(request, vacancy_id:int):
     await models.Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
     return {"success":True}

@@ -14,7 +14,7 @@ def CookiesCheckMiddleware(get_response):
                 if data['username'] :
                     request.user = data
                 else:
-                    return HttpResponseForbidden("Вы не имеете прав на доступ")
+                    return HttpResponseForbidden(data['exception'])
         
         response = await get_response(request)
         return response
