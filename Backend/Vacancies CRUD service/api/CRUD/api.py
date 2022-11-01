@@ -4,7 +4,7 @@ from . import models, schemas
 from typing import List
 from asgiref.sync import sync_to_async
 import json
-from .decorators.compnay_check import company_hr_only
+from .decorators.company_check import company_hr_only
 
 
 
