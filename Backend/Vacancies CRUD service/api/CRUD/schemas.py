@@ -51,8 +51,6 @@ class VacancyInScheme(Schema):
     required_skills: list[SkillsScheme]
     work_schedule: WorkScheduleScheme 
     interview: InterviewScheme 
-    #ToDo: @validator
-
 
 class VacancyOutScheme(VacancyInScheme):
     id: str

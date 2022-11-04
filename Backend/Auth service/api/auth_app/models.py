@@ -18,8 +18,8 @@ class MetaFields(models.Model):
 class User(AbstractBaseUser, PermissionsMixin, MetaFields):
     '''Модель аутентификации и авторизации'''
 
-    username = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=100, unique=True, null=False)
+    email = models.EmailField(unique=True, null=False)
     phone_number = models.CharField(max_length=10)
     profile_image = models.CharField(max_length=1000, default='')
     profile_type = models.CharField(max_length=10, default='')

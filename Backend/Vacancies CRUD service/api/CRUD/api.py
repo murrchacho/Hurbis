@@ -17,6 +17,39 @@ class DateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
+@router.get("/{str:company}", response=List[schemas.VacancyOutScheme])
+async def read(request, company: str):
+    try:
+        return await models.Vacancy.objects.filter(company=request.data[company])
+    except:
+        return None
+
+    
+@router.put("/{int:vacancy_id}")
+@company_hr_only
+async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
+    try:
+        data = payload.dict()
+        data['updated_at'] = str(datetime.now())
+        await models.Vacancy.objects.aget(id=vacancy_id).aupdate(**data)
+        return {"success":True}
+    except:
+        return {"success":False}
+
+
+@router.delete("/{int:vacancy_id}")
+@company_hr_only
+async def delete(request, vacancy_id:int):
+    await models.Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
+    return {"success":True}
+
+
+@router.post("/like/{int:vacancy_id}")
+async def like(request, vacancy_id:int):
+    models.Vacancy.objects.aget(id=vacancy_id)
+    return {"success":True}
+
+
 @router.post("")
 @company_hr_only
 async def create(request, payload: schemas.VacancyInScheme):
@@ -26,47 +59,12 @@ async def create(request, payload: schemas.VacancyInScheme):
         await models.Vacancy.objects.acreate(**data)
         return {"success":True}
     except:
-        return {"success":True}
+        return {"success":False}
 
 
 @router.get("", response=List[schemas.VacancyOutScheme])
-@company_hr_only
 async def read(request):
-    await sync_to_async(list)(models.Vacancy.objects.all())
-    return {"success":True}
-    
-    
-@sync_to_async
-def update_object(vacancy):
-    return vacancy.save()
-
-
-@router.put("/{vacancy_id}")
-@sync_to_async
-async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
-    is_changed = False
-    vacancy = await sync_to_async(models.Vacancy.objects.get)(id=vacancy_id)
-    for attr, value in payload.dict().items():
-        if(getattr(vacancy, attr) != value):
-            is_changed = True
-            setattr(vacancy, attr, value)
-    if is_changed:
-        setattr(vacancy, 'updated_at', str(datetime.now()))
-        await update_object(vacancy)
-        return {"success":True}
-    else:
-        return {"success":False, "description":"Nothing to update"}
-
-
-
-@router.delete("/{vacancy_id}")
-@sync_to_async
-async def delete(request, vacancy_id:int):
-    await models.Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
-    return {"success":True}
-
-
-@router.post("/like/{vacancy_id}")
-async def like(request, vacancy_id:int):
-    await models.Vacancy.objects.get(id=vacancy_id)
-    return {"success":True}
+    try:
+        return await sync_to_async(list)(models.Vacancy.objects.all())
+    except:
+        return None
