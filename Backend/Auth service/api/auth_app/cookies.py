@@ -1,10 +1,9 @@
 import os
-import json
 import jwt
 from django.contrib.auth import get_user_model
 from ninja_jwt.tokens import RefreshToken
 from api_app.settings_folder import settings
-from .models import *
+from .models import CompanyProfile, HRProfile
 from .custom_response import CustomJsonResponse
 #from redis.instance import redis_instance
 
@@ -15,7 +14,12 @@ User = get_user_model()
 
 
 def get_user_from_cookie(request):
-    return jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
+    try:
+        return jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id'], None
+
+    except jwt.exceptions.ExpiredSignatureError as e:
+        print(repr(e))
+        return None, 'Куки не валидны, пожалуйста, выполните вход в аккаунт'
 
 
 async def return_response_with_cookies(user):
@@ -26,7 +30,7 @@ async def return_response_with_cookies(user):
 
 
 def create_tokens_for_user(user: User, response: CustomJsonResponse) -> CustomJsonResponse:
-    '''Создает JWT-токены для юзера и возвращает их в response.'''
+    '''Создает JWT-токены для пользователя и возвращает их в response.'''
     try:
         refresh = RefreshToken.for_user(user)
         data = {
@@ -64,17 +68,17 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
 async def get_info_about_user(user: User) -> dict:
     '''Возвращает дополнительную информацию о профиле пользователя.'''
 
-    company: CompanyProfile = None
+    company = None
     data = {}
-    if user.profile_type == 'company': 
+    if user.account_type == 'company': 
         company = await CompanyProfile.objects.filter(userid=user.pk).afirst()
-    elif user.profile_type == 'hr':
+    elif user.account_type == 'hr':
         hr = await HRProfile.objects.filter(userid=user.pk).select_related('companyid').afirst()
         company = await CompanyProfile.objects.filter(id=hr.companyid.id).afirst()
     if company:
         data['company'] = company.company_name 
 
     data['username'] = user.username
-    data['profile_type'] = user.profile_type
+    data['account_type'] = user.account_type
 
     return data

@@ -22,7 +22,7 @@ class User(AbstractBaseUser, PermissionsMixin, MetaFields):
     email = models.EmailField(unique=True, null=False)
     phone_number = models.CharField(max_length=10)
     profile_image = models.CharField(max_length=1000, default='')
-    profile_type = models.CharField(max_length=10, default='')
+    account_type = models.CharField(max_length=10, default='')
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

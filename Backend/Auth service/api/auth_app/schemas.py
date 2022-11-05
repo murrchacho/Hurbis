@@ -14,7 +14,7 @@ class LoginInScheme(Schema):
 
 
 class AccountTypeScheme(Schema):
-    type: str
+    account_type: str
     first_name: str = None
     last_name: str = None
     company_link: str = None

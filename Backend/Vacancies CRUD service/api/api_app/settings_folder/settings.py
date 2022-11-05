@@ -40,17 +40,12 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    #'django.contrib.admin',
-    #'django.contrib.auth',
     'django.contrib.contenttypes',
-    #'django.contrib.sessions',
-    #'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'CRUD',
+    'CRUD_app',
 ]
 
 MIDDLEWARE = [
-    'api.middleware.auth_middleware.CookiesCheckMiddleware',
+    'api_app.middleware.auth_middleware.CookiesCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     #'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -60,10 +55,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'api.urls'
+ROOT_URLCONF = 'api_app.urls'
 
-WSGI_APPLICATION = 'api.wsgi.application'
-ASGI_APPLICATION = 'api.asgi.application'
+WSGI_APPLICATION = 'api_app.wsgi.application'
+ASGI_APPLICATION = 'api_app.asgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

@@ -1,11 +1,11 @@
-import jwt
 import uuid
 from django.middleware import csrf
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
-from . import schemas
+from django.db import IntegrityError
 from ninja import Router
-from .models import *
+from . import schemas
+from .models import ApplicantProfile, CompanyProfile, HRProfile
 from .custom_response import CustomJsonResponse
 from .cookies import return_response_with_cookies, get_user_from_cookie, get_info_about_user
 #from redis.instance import redis_instance
@@ -30,21 +30,24 @@ async def registration(request, payload: schemas.RegistrationInScheme):
 
     except Exception as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Что-то пошло не так при регистрации..')
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Что-то пошло не так при регистрации..'
+        )
     
 
 @router.post('/login')
 async def login(request, payload: schemas.LoginInScheme):
 
-        credentials = payload.dict()
-        user, error = await User.objects.login(credentials)
+    credentials = payload.dict()
+    user, error = await User.objects.login(credentials)
 
-        if error:
-            return CustomJsonResponse(success=False, status_code=400, description=error)
+    if error:
+        return CustomJsonResponse(success=False, status_code=400, description=error)
 
-        csrf.get_token(request) #todo
-        return await return_response_with_cookies(user)
-
+    csrf.get_token(request) #todo
+    return await return_response_with_cookies(user)
 
 
 @router.post('/logout')
@@ -52,68 +55,140 @@ async def logout(request):
     return HttpResponse("Сделаем вид, что мы инвалидировали текущие куки =)")
 
 
-@router.post('/check-cookies')
-async def check_cookies(request):
-    '''Валидация кук'''
+@router.post('/check-tokens')
+async def check_tokens(request):
+    '''Валидация токенов'''
     try:
-        userid = get_user_from_cookie(request)
+        userid, error = get_user_from_cookie(request)
+
+        if error:
+            return CustomJsonResponse(success=False, status_code=400, description=error)
+            
         user = await User.objects.aget(id=userid)
         get_info_about_user(user)
         return CustomJsonResponse()
 
+    except User.DoesNotExist as e:
+        print(repr(e))
+        return CustomJsonResponse(success=False, status_code=400, description='Похоже, что такого профиля пользователя не существует..')
+
     except Exception as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Возможно, куки не валидны') #ToDo сделать нормальную проверку ошибок
+        return CustomJsonResponse(success=False, status_code=400, description='Неизвестная ошибка при попытке валидации токенов')
 
 
 @router.post('/account-type')
 async def account_type(request, payload: schemas.AccountTypeScheme):
     '''Выбор типа аккаунта'''
     try:
-        userid = get_user_from_cookie(request)
+        userid, error = get_user_from_cookie(request)
+        if error:
+            return CustomJsonResponse(success=False, status_code=400, description=error)
+
         if userid:
-            user = await User.objects.filter(id=userid, profile_type='', is_active=True).afirst() 
+            user = await User.objects.filter(
+                id=userid,
+                account_type='',
+                is_active=True
+            ).afirst()
 
             if user:
-                if payload.type == 'hr' and payload.company_link and payload.company_name:
-                    company = await CompanyProfile.objects.filter(company_name = payload.company_name, link=payload.company_link).afirst()
+                if (
+                    payload.account_type == 'hr' 
+                    and payload.company_link
+                    and payload.company_name
+                ):
+                    company = await CompanyProfile.objects.filter(
+                        company_name = payload.company_name,
+                        link=payload.company_link
+                    ).afirst()
                     await HRProfile.objects.acreate(userid=user, companyid=company)
-                    await User.objects.filter(id=userid, profile_type='', is_active=True).aupdate(profile_type='hr')
+                    await User.objects.filter(
+                        id=userid, 
+                        account_type='', 
+                        is_active=True
+                    ).aupdate(account_type='hr')
 
-                if payload.type == 'company' and payload.company_name:
+                if (
+                    payload.account_type == 'company' 
+                    and payload.company_name
+                ):
                     link = uuid.uuid4()
-                    await CompanyProfile.objects.acreate(company_name=payload.company_name, link=link, userid=user)
-                    await User.objects.filter(id=userid, profile_type='', is_active=True).aupdate(profile_type='company')
+                    await CompanyProfile.objects.acreate(
+                        company_name=payload.company_name,
+                        link=link,
+                        userid=user
+                    )
+                    await User.objects.filter(
+                        id=userid,
+                        account_type='',
+                        is_active=True
+                    ).aupdate(account_type='company')
 
-                if payload.type == 'applicant':
+                if payload.account_type == 'applicant':
                     await ApplicantProfile.objects.acreate(userid=user)
-                    await User.objects.filter(id=userid, profile_type='', is_active=True).aupdate(profile_type='applicant')
+                    await User.objects.filter(id=userid,
+                        account_type='',
+                        is_active=True
+                    ).aupdate(account_type='applicant')
 
-            return CustomJsonResponse()
-
-    except jwt.exceptions.ExpiredSignatureError as e:
-        print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Куки не валидны, пожалуйста, выполните вход в аккаунт')
-
+                return CustomJsonResponse()
+            else:
+                return CustomJsonResponse(
+                    success=False, 
+                    status_code=400, 
+                    description=('Возможно, Вы ввели неправильное название компании '
+                                'или пытаетесь изменить активный тип профиля')
+                )
+            
     except User.DoesNotExist as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Похоже, что такого профиля пользователя не существует..')
+        return CustomJsonResponse(
+            success=False, 
+            status_code=400,
+            description='Похоже, что такого профиля пользователя не существует..'
+        )
 
     except CompanyProfile.DoesNotExist as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Похоже, что такого профиля компании не существует..')
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Похоже, что такого профиля компании не существует..'
+        )
 
     except HRProfile.DoesNotExist as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Похоже, что такого профиля HR не существует..')
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Похоже, что такого профиля HR не существует..'
+        )
 
     except ApplicantProfile.DoesNotExist as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Похоже, что такого профиля соискателя не существует..')
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Похоже, что такого профиля соискателя не существует..'
+        )
+    
+    except IntegrityError as e:
+        print(repr(e))
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description=('Возможно, Вы ввели неправильное название компании '
+                        'или пытаетесь изменить активный тип профиля')
+        )
         
     except Exception as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, status_code=400, description='Что-то пошло не так при выборе типа аккаунта..')
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Что-то пошло не так при выборе типа аккаунта..'
+        )
 
 
 

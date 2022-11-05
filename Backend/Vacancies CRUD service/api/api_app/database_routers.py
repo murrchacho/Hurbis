@@ -1,5 +1,5 @@
-from CRUD.models import *
-from api.settings_folder.settings import POSTGRESQL, MONGODB
+from CRUD_app.models import *
+from .settings_folder.settings import POSTGRESQL, MONGODB
 
 
 
@@ -38,7 +38,7 @@ class BaseRouter:
 
 
 class PostgreSQLRouter(BaseRouter):
-    permitted_apps={'contenttypes', 'auth', 'sessions', 'logentry', 'admin'}
+    permitted_apps={'contenttypes'}
     db=POSTGRESQL
 
 
