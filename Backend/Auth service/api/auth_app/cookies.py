@@ -1,4 +1,5 @@
 import os
+import json
 import jwt
 from django.contrib.auth import get_user_model
 from ninja_jwt.tokens import RefreshToken
@@ -14,17 +15,17 @@ User = get_user_model()
 
 
 def get_user_from_cookie(request):
-    jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
+    return jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
 
 
 async def return_response_with_cookies(user):
     user_info = await get_info_about_user(user)
     response = CustomJsonResponse(data=user_info)
-    response = await create_tokens_for_user(user, response)
+    response = create_tokens_for_user(user, response)
     return response
 
 
-async def create_tokens_for_user(user: User, response: CustomJsonResponse) -> CustomJsonResponse:
+def create_tokens_for_user(user: User, response: CustomJsonResponse) -> CustomJsonResponse:
     '''Создает JWT-токены для юзера и возвращает их в response.'''
     try:
         refresh = RefreshToken.for_user(user)
@@ -62,21 +63,18 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
 
 async def get_info_about_user(user: User) -> dict:
     '''Возвращает дополнительную информацию о профиле пользователя.'''
-    try:
-        company: CompanyProfile = None
-        data = {}
 
-        if user.profile_type == 'company': 
-            company =  await CompanyProfile.objects.aget(userid=user.pk)
-        elif user.profile_type == 'hr':
-            company =  await HRProfile.objects.aget(userid=user.pk)
-        if company:
-            data['company'] = company.company_name 
+    company: CompanyProfile = None
+    data = {}
+    if user.profile_type == 'company': 
+        company = await CompanyProfile.objects.filter(userid=user.pk).afirst()
+    elif user.profile_type == 'hr':
+        hr = await HRProfile.objects.filter(userid=user.pk).select_related('companyid').afirst()
+        company = await CompanyProfile.objects.filter(id=hr.companyid.id).afirst()
+    if company:
+        data['company'] = company.company_name 
 
-        data['username'] = user.username
-        data['profile_type'] = user.profile_type
+    data['username'] = user.username
+    data['profile_type'] = user.profile_type
 
-        return data
-
-    except Exception as e:
-        print(repr(e))
+    return data
