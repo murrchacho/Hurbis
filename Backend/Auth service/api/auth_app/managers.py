@@ -22,6 +22,7 @@ class UserManager(BaseUserManager):
             extra_fields.setdefault("is_superuser", False)
 
             data = data | extra_fields     
+            
             if not data['email']:
                 raise ValueError('The email must be provided')
             data['email'] = self.normalize_email(data['email'])
@@ -42,6 +43,11 @@ class UserManager(BaseUserManager):
             return None, "Неизвестная ошибка"
 
     async def _login(self, data) -> tuple[Type[Model], None] | tuple[None, str]:
+        '''Ищет пользователя в БД и проверяет пароль по хэшу.
+
+        Возвращает tuple из модели User и None, если пользователь успешно аутентифицирован.
+        Возвращает tuple из None и str, если произошла ошибка.
+        '''
         try:
             username = data['username']
 
@@ -52,8 +58,8 @@ class UserManager(BaseUserManager):
 
             if bcrypt.checkpw(password, hashed):
                 return user, None
-                
-            return None, 'Неверное имя пользователя или пароль'
+            else:
+                return None, 'Неверное имя пользователя или пароль'
 
         except ObjectDoesNotExist as e:
             print(repr(e))
@@ -74,7 +80,7 @@ class UserManager(BaseUserManager):
     async def login(self, data: dict) -> tuple[Type[Model], None] | tuple[None, str]:
         '''Осуществляет аутентификацию пользователя.
                 
-        Возвращает tuple с моделью User и None, если пользователь успешно авторизован.
+        Возвращает tuple с моделью User и None, если пользователь успешно аутентифицирован.
         Возвращает tuple с None, и описанием ошибки, если произошла ошибка.
         '''
         return await self._login(data)

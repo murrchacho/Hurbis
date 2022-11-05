@@ -1,14 +1,25 @@
+import os
+import jwt
+from django.contrib.auth import get_user_model
 from ninja_jwt.tokens import RefreshToken
 from api_app.settings_folder import settings
 from .models import *
 from .custom_response import CustomJsonResponse
 #from redis.instance import redis_instance
-from django.contrib.auth import get_user_model
+
+
+
+
 User = get_user_model()
 
 
+def get_user_from_cookie(request):
+    jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id']
+
+
 async def return_response_with_cookies(user):
-    response = CustomJsonResponse()
+    user_info = await get_info_about_user(user)
+    response = CustomJsonResponse(data=user_info)
     response = await create_tokens_for_user(user, response)
     return response
 
@@ -21,9 +32,6 @@ async def create_tokens_for_user(user: User, response: CustomJsonResponse) -> Cu
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         }
-
-        user_info = await get_info_from_cookies(user)
-        response.add_data(user_info)
 
         #redis_instance.set(user.id, data["refresh"])
         response = set_cookies(response, 'access' , 'ACCESS_COOKIE', 'ACCESS_TOKEN', data)
@@ -52,8 +60,8 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
         print(repr(e))
 
 
-async def get_info_from_cookies(user: User) -> dict:
-    '''Добавляет в dict для response дополнительную информацию о профиле пользователя.'''
+async def get_info_about_user(user: User) -> dict:
+    '''Возвращает дополнительную информацию о профиле пользователя.'''
     try:
         company: CompanyProfile = None
         data = {}
