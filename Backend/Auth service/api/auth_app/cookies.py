@@ -15,7 +15,10 @@ User = get_user_model()
 
 def get_user_from_cookie(request):
     try:
-        return jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id'], None
+        if settings.SIMPLE_JWT['ACCESS_COOKIE'] in request.COOKIES:
+            return jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id'], None
+        else:
+            return None, 'Пожалуйста, выполните вход в аккаунт'
 
     except jwt.exceptions.ExpiredSignatureError as e:
         print(repr(e))
@@ -67,7 +70,6 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
 
 async def get_info_about_user(user: User) -> dict:
     '''Возвращает дополнительную информацию о профиле пользователя.'''
-
     company = None
     data = {}
     if user.account_type == 'company': 

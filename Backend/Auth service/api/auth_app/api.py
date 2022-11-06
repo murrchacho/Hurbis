@@ -64,9 +64,10 @@ async def check_tokens(request):
         if error:
             return CustomJsonResponse(success=False, status_code=400, description=error)
             
-        user = await User.objects.aget(id=userid)
-        get_info_about_user(user)
-        return CustomJsonResponse()
+        user = await User.objects.filter(id=userid).afirst()
+        user_info = await get_info_about_user(user)
+
+        return CustomJsonResponse(data=user_info)
 
     except User.DoesNotExist as e:
         print(repr(e))

@@ -4,8 +4,8 @@ from . import models, schemas
 from typing import List
 from asgiref.sync import sync_to_async
 import json
-from .decorators.company_check import company_hr_only
-
+from .decorators.company_check import company_only
+from .custom_response import CustomJsonResponse
 
 
 router = Router()
@@ -26,7 +26,7 @@ async def read(request, company: str):
 
     
 @router.put("/{int:vacancy_id}")
-@company_hr_only
+@company_only
 async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
     try:
         data = payload.dict()
@@ -38,7 +38,7 @@ async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
 
 
 @router.delete("/{int:vacancy_id}")
-@company_hr_only
+@company_only
 async def delete(request, vacancy_id:int):
     await models.Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
     return {"success":True}
@@ -51,15 +51,15 @@ async def like(request, vacancy_id:int):
 
 
 @router.post("")
-@company_hr_only
+@company_only
 async def create(request, payload: schemas.VacancyInScheme):
-    try:
+
         data = payload.dict()
         data['user_id'] = request.user['username']
         await models.Vacancy.objects.acreate(**data)
-        return {"success":True}
-    except:
-        return {"success":False}
+        return CustomJsonResponse()
+
+
 
 
 @router.get("", response=List[schemas.VacancyOutScheme])

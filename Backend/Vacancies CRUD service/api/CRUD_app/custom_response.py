@@ -30,7 +30,6 @@ class CustomJsonResponse(HttpResponse):
             
         if json_dumps_params is None:
             json_dumps_params = {}
-            
         kwargs.setdefault("content_type", "application/json")
         kwargs.setdefault("status", status_code)
 
