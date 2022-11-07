@@ -1,5 +1,4 @@
 from django.utils.decorators import async_only_middleware
-from django.http import HttpResponseForbidden
 import aiohttp
 from CRUD_app.custom_response import CustomJsonResponse
 

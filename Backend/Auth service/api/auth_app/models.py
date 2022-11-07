@@ -17,7 +17,6 @@ class MetaFields(models.Model):
 
 class User(AbstractBaseUser, PermissionsMixin, MetaFields):
     '''Модель аутентификации и авторизации'''
-
     username = models.CharField(max_length=100, unique=True, null=False)
     email = models.EmailField(unique=True, null=False)
     phone_number = models.CharField(max_length=10)
@@ -39,7 +38,6 @@ class User(AbstractBaseUser, PermissionsMixin, MetaFields):
 
 class ApplicantProfile(MetaFields):
     '''Профиль соискателя'''
-
     userid = models.OneToOneField(User, on_delete = models.CASCADE, db_column='userid')
     first_name = models.CharField(max_length=30, default='')
     last_name = models.CharField(max_length=30, default='') 
@@ -50,7 +48,6 @@ class ApplicantProfile(MetaFields):
 
 class CompanyProfile(MetaFields):
     '''Профиль компании'''
-
     userid = models.OneToOneField(User, on_delete = models.CASCADE, db_column='userid')
     company_name = models.CharField(max_length=30, default='')
     link = models.CharField(max_length=50)
@@ -61,7 +58,6 @@ class CompanyProfile(MetaFields):
 
 class HRProfile(MetaFields):
     '''Профиль hr'''
-
     userid = models.OneToOneField(User, on_delete = models.CASCADE, db_column='userid')
     companyid = models.ForeignKey(CompanyProfile, on_delete = models.CASCADE, db_column='companyid')
     first_name = models.CharField(max_length=30, default='', null=True)
