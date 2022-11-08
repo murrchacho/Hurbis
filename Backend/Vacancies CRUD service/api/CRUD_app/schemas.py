@@ -50,8 +50,11 @@ class VacancyInScheme(Schema):
     location: LocationScheme 
     required_skills: list[SkillsScheme]
     work_schedule: WorkScheduleScheme 
-    interview: InterviewScheme 
+    interview: InterviewScheme
+
 
 class VacancyOutScheme(VacancyInScheme):
     id: str
+    user_id: str
+    likes: None
     

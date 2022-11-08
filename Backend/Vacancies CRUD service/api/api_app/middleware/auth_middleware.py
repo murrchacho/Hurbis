@@ -11,7 +11,7 @@ def CookiesCheckMiddleware(get_response):
         async with aiohttp.ClientSession() as session:
             async with session.post('http://localhost:8000/api/auth/check-tokens', cookies=request.COOKIES) as resp:
                 data = await resp.json()
-                print(data)
+
                 if data['success'] == False:
                     return CustomJsonResponse(
                         success=False,
