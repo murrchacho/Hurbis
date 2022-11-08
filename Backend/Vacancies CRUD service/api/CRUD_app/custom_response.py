@@ -9,10 +9,10 @@ class CustomJsonResponse(HttpResponse):
     '''Класс кастомного JsonResponse. Служит для шаблонизации ответов от сервера.'''
     def __init__(
         self,
-        data={},
+        data={'data':{}, 'meta':{}},
         success=True,
         description=None,
-        status_code=200,
+        status_code=None,
         allow_null=False,
         encoder=DjangoJSONEncoder,
         safe=True,
@@ -21,7 +21,7 @@ class CustomJsonResponse(HttpResponse):
     ):
     
         if data is None:
-            data = {}
+            data = {'data':{}, 'meta':{}}
 
         if safe and not isinstance(data, dict):
             raise TypeError(
@@ -33,18 +33,22 @@ class CustomJsonResponse(HttpResponse):
             json_dumps_params = {}
             
         kwargs.setdefault("content_type", "application/json")
-        kwargs.setdefault("status", status_code)
+
 
         if allow_null == False:
             for _, value in data.items():
                 if value is None or '':
                     success = False 
                     break
+        
+        if success == False and status_code is None:
+            status_code = 400
 
-        data['success'] = success
-
+        kwargs.setdefault("status", status_code)
+        
+        data['meta']['success'] = success
         if description:
-            data['description'] = description
+            data['meta']['description'] = description
 
         data = json.dumps(data, cls=encoder, **json_dumps_params)
 

@@ -4,7 +4,6 @@ from CRUD_app.custom_response import CustomJsonResponse
 
 
 
-
 @async_only_middleware
 def CookiesCheckMiddleware(get_response):
     async def middleware(request):

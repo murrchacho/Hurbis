@@ -71,16 +71,16 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
 async def get_info_about_user(user: User) -> dict:
     '''Возвращает дополнительную информацию о профиле пользователя.'''
     company = None
-    data = {}
+    data = {'data':{}, 'meta':{}}
     if user.account_type == 'company': 
         company = await CompanyProfile.objects.filter(userid=user.pk).afirst()
     elif user.account_type == 'hr':
         hr = await HRProfile.objects.filter(userid=user.pk).select_related('companyid').afirst()
         company = await CompanyProfile.objects.filter(id=hr.companyid.id).afirst()
     if company:
-        data['company'] = company.company_name 
+        data['data']['company'] = company.company_name 
 
-    data['username'] = user.username
-    data['account_type'] = user.account_type
+    data['data']['username'] = user.username
+    data['data']['account_type'] = user.account_type
 
     return data

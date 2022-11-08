@@ -6,7 +6,7 @@ from typing import List
 from asgiref.sync import sync_to_async
 import json
 from .decorators.company_check import company_only
-from .custom_response import CustomJsonResponse
+from CRUD_app.custom_response.responses import CustomJsonResponse
 
 
 router = Router()
@@ -27,9 +27,12 @@ async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
         await Vacancy.objects.filter(id=vacancy_id).aupdate(**data)
         return CustomJsonResponse()
 
-    except Vacancy.DoesNotExist:
+    except Vacancy.DoesNotExist as e:
+        print(repr(e))
         return CustomJsonResponse(success=False, description='Похоже, что такой вакансии не существует')
-    except:
+
+    except Exception as e:
+        print(repr(e))
         return CustomJsonResponse(success=False, description='Что-то пошло не так при обновлении вакансии')
 
 
@@ -39,10 +42,13 @@ async def delete(request, vacancy_id:int):
     try:
         await Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
         return CustomJsonResponse()
-
-    except Vacancy.DoesNotExist:
+        
+    except Vacancy.DoesNotExist as e:
+        print(repr(e))
         return CustomJsonResponse(success=False, description='Похоже, что такой вакансии не существует')
-    except:
+
+    except Exception as e:
+        print(repr(e))
         return CustomJsonResponse(success=False, description='Что-то пошло не так при обновлении вакансии')
 
 
@@ -50,7 +56,9 @@ async def delete(request, vacancy_id:int):
 async def read(request, company: str):
     try:
         return await Vacancy.objects.filter(company=request.data[company])
-    except:
+
+    except Exception as e:
+        print(repr(e))
         return None
 
 
@@ -62,7 +70,9 @@ async def create(request, payload: schemas.VacancyInScheme):
         data['user_id'] = request.user['username']
         await Vacancy.objects.acreate(**data)
         return CustomJsonResponse()
-    except:
+
+    except Exception as e:
+        print(repr(e))
         return CustomJsonResponse(success=False, description='Что-то пошло не так при создании вакансии')
 
 
@@ -70,11 +80,14 @@ async def create(request, payload: schemas.VacancyInScheme):
 async def read(request):
     try:
         return await sync_to_async(list)(Vacancy.objects.all())
-    except:
+
+    except Exception as e:
+        print(repr(e))
         return None
 
 
 @router.post("/like/{int:vacancy_id}")
 async def like(request, vacancy_id:int):
+    username = request.user['username']
     Vacancy.objects.aget(id=vacancy_id)
     return {"success":True}

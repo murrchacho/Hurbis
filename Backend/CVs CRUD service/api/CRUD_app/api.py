@@ -1,11 +1,12 @@
 from datetime import datetime
 from ninja import Router
-from . import models, schemas
+from . import schemas
+from .models import CV
 from typing import List
 from asgiref.sync import sync_to_async
 import json
-from django.http import HttpResponse
-import aiohttp
+from CRUD_app.custom_response import CustomJsonResponse
+from .decorators.applicant_check import applicant_only
 
 
 
@@ -19,48 +20,64 @@ class DateTimeEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-@router.post("")
-async def create(request, payload: schemas.CVInScheme):
-    cookies = request.COOKIES
-    async with aiohttp.ClientSession() as session:
-        async with session.post('http://localhost:8000/api/auth/check-cookies', cookies=cookies) as resp:
-            user_info = await resp.json()
-    
-    if user_info.get("type")=="applicant":
-        info = payload.dict()
-        info['user_id'] = user_info.get("username")
-        await models.CV.objects.acreate(**info)
-        return {"success":True}
-    return {"success":False}
-
-@router.get("", response=List[schemas.CVOutScheme])
-async def read(request):
-    return await sync_to_async(list)(models.CV.objects.all())
-    
-    
-@sync_to_async
-def update_object(CV):
-    return CV.save()
-
 @router.put("/{CV_id}")
+@applicant_only
 async def update(request, CV_id:int, payload: schemas.CVInScheme):
-    is_changed = False
-    CV = await sync_to_async(models.CV.objects.get)(id=CV_id)
-    for attr, value in payload.dict().items():
-        if(getattr(CV, attr) != value):
-            is_changed = True
-            setattr(CV, attr, value)
-    if is_changed:
-        setattr(CV, 'updated_at', str(datetime.now()))
-        await update_object(CV)
-        return {"success":True}
-    else:
-        return {"success":False, "description":"Nothing to update"}
+    try:
+        data = payload.dict()
+        data['updated_at'] = str(datetime.now())
+        await CV.objects.filter(id=CV_id).aupdate(**data)
+        return CustomJsonResponse()
+
+    except CV.DoesNotExist as e:
+        print(repr(e))
+        return CustomJsonResponse(success=False, description='Похоже, что такого резюме не существует')
+
+    except Exception as e:
+        print(repr(e))
+        return CustomJsonResponse(success=False, description='Что-то пошло не так при обновлении резюме')
 
 
 @router.delete("/{CV_id}")
+@applicant_only
 async def delete(request, CV_id:int):
-    await models.CV.objects.filter(id=CV_id).adelete()
-    return {"success":True}
+    try:
+        await CV.objects.filter(id=CV_id, user_id=request.user['username']).adelete()
+        return CustomJsonResponse()
+        
+    except CV.DoesNotExist as e:
+        print(repr(e))
+        return CustomJsonResponse(success=False, description='Похоже, что такого резюме не существует')
+
+    except Exception as e:
+        print(repr(e))
+        return CustomJsonResponse(success=False, description='Что-то пошло не так при обновлении резюме')
+
+
+@router.post("")
+@applicant_only
+async def create(request, payload: schemas.CVInScheme):
+    try:
+        data = payload.dict()
+        data['user_id'] = request.user['username']
+        await CV.objects.acreate(**data)
+        return CustomJsonResponse()
+
+    except Exception as e:
+        print(repr(e))
+        return CustomJsonResponse(success=False, description='Что-то пошло не так при создании резюме')
+
+
+@router.get("", response=List[schemas.CVOutScheme])
+@applicant_only
+async def read(request):
+    try:
+        return await sync_to_async(list)(CV.objects.all())
+
+    except Exception as e:
+        print(repr(e))
+        return None
+
+
 
 

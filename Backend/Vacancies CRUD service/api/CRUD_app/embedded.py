@@ -16,8 +16,8 @@ class SalaryEmbedded(models.Model):
 
 
 class PositionEmbedded(models.Model):
-    title = models.CharField(max_length=50, default="", primary_key=True)
-    level = models.CharField(max_length=20, default="")
+    title = models.CharField(max_length=50, default='', primary_key=True)
+    level = models.CharField(max_length=20, default='')
 
     class Meta:
         managed=False
@@ -32,8 +32,8 @@ class MetaEmbedded(models.Model):
 
 
 class CommonScheduleEmbedded(models.Model):
-    type = models.CharField(max_length=50, default="", primary_key=True)
-    schedule = models.CharField(max_length=50, default="")
+    type = models.CharField(max_length=50, default='', primary_key=True)
+    schedule = models.CharField(max_length=50, default='')
 
     class Meta:
         managed=False
@@ -53,16 +53,16 @@ class WorkScheduleEmbedded(models.Model):
 
 
 class LocationEmbedded(models.Model):
-    country = models.CharField(max_length=50, default="", primary_key=True)
-    city = models.CharField(max_length=50, default="")
-    address = models.CharField(max_length=100, default="")
+    country = models.CharField(max_length=50, default='', primary_key=True)
+    city = models.CharField(max_length=50, default='')
+    address = models.CharField(max_length=100, default='')
 
     class Meta:
         managed=False
 
 
 class InterviewEmbedded(models.Model):
-    format = models.CharField(max_length=50, default="", primary_key=True)
+    format = models.CharField(max_length=50, default='', primary_key=True)
     stages = models.IntegerField(default=0)
 
     class Meta:
@@ -70,8 +70,8 @@ class InterviewEmbedded(models.Model):
 
 
 class SkillsEmbedded(models.Model):
-    skill = models.CharField(max_length=50, default="", primary_key=True)
-    level = models.CharField(max_length=50, default="")
+    skill = models.CharField(max_length=50, default='', primary_key=True)
+    level = models.CharField(max_length=50, default='')
 
     class Meta:
         managed=False
