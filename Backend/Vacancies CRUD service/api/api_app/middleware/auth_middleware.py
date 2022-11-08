@@ -11,15 +11,17 @@ def CookiesCheckMiddleware(get_response):
         async with aiohttp.ClientSession() as session:
             async with session.post('http://localhost:8000/api/auth/check-tokens', cookies=request.COOKIES) as resp:
                 data = await resp.json()
-
+                print(data)
                 if data['success'] == False:
                     return CustomJsonResponse(
                         success=False,
                         description=data['description'] or '''При попытке проверить токены произошла ошибка на сервере авторизации''',
-                        status_code=400)
+                        status_code=400
+                    )
                     
                 if data['username']:
-                    request.user = data
+                    user_info = {key: data[key] for key in data if key != 'success'}
+                    request.user = user_info
 
                 else:
                     return CustomJsonResponse(success=False, description='Неизвестная ошибка при попытке проверить токены', status_code=400)
@@ -27,5 +29,4 @@ def CookiesCheckMiddleware(get_response):
         response = await get_response(request)
         return response
     
-
     return middleware

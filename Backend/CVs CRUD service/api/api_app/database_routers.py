@@ -1,5 +1,5 @@
-from CRUD.models import *
-from api.settings.settings import POSTGRESQL, MONGODB
+from CRUD_app.models import *
+from api_app.settings_folder.settings import POSTGRESQL, MONGODB
 
 
 

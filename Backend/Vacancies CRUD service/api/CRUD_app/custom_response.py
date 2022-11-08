@@ -19,9 +19,10 @@ class CustomJsonResponse(HttpResponse):
         json_dumps_params=None,
         **kwargs,
     ):
+    
         if data is None:
             data = {}
-            
+
         if safe and not isinstance(data, dict):
             raise TypeError(
                 "In order to allow non-dict objects to be serialized set the "
@@ -41,6 +42,7 @@ class CustomJsonResponse(HttpResponse):
                     break
 
         data['success'] = success
+
         if description:
             data['description'] = description
 

@@ -19,7 +19,6 @@ load_dotenv(dotenv_path)
 
 from pathlib import Path
 from .databases_settings import *
-from .celery_settings import *
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -48,7 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     #'django.contrib.messages',
     'django.contrib.staticfiles',
-    'CRUD',
+    'CRUD_app',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +60,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'api.urls'
+ROOT_URLCONF = 'api_app.urls'
 
 TEMPLATES = [
     {
@@ -79,8 +78,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'api.wsgi.application'
-ASGI_APPLICATION = 'api.asgi.application'
+WSGI_APPLICATION = 'api_app.wsgi.application'
+ASGI_APPLICATION = 'api_app.asgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

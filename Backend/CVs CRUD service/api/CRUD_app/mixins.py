@@ -1,5 +1,5 @@
 from djongo import models
-from api.settings.settings import POSTGRESQL, MONGODB
+from api_app.settings_folder.settings import POSTGRESQL, MONGODB
 
 
 

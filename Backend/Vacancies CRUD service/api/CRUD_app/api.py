@@ -53,13 +53,10 @@ async def like(request, vacancy_id:int):
 @router.post("")
 @company_only
 async def create(request, payload: schemas.VacancyInScheme):
-
-        data = payload.dict()
-        data['user_id'] = request.user['username']
-        await models.Vacancy.objects.acreate(**data)
-        return CustomJsonResponse()
-
-
+    data = payload.dict()
+    data['user_id'] = request.user['username']
+    await models.Vacancy.objects.acreate(**data)
+    return CustomJsonResponse()
 
 
 @router.get("", response=List[schemas.VacancyOutScheme])
