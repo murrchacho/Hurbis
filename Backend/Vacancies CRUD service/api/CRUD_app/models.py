@@ -1,3 +1,4 @@
+from enum import unique
 from djongo import models
 from .mixins import MongoDBMixin
 from datetime import datetime
@@ -6,7 +7,7 @@ from .embedded import *
 
 
 
-class Vacancy(MongoDBMixin, ):
+class Vacancy(MongoDBMixin):
     '''Модель поста с вакансией'''
     user_id = models.CharField(max_length=100, null=False)
     body = models.CharField(max_length=10000, default='')
@@ -31,15 +32,23 @@ class Vacancy(MongoDBMixin, ):
     location = models.EmbeddedField(
         model_container = LocationEmbedded
     )
-    likes = models.ArrayField(
-        model_container = LikesEmbedded
-    )
     
     created_at = models.DateTimeField(default=datetime.now, null=False)
     updated_at = models.DateTimeField(null=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['created_at']
         db_table = "vacancies"
 
 
+class ApplicantLikedVacancies(MongoDBMixin):
+    username = models.CharField(max_length=100, null=False)
+    liked_vacancies = models.ArrayField(
+        model_container = LikedVacanciesEmbedded
+    )
+
+    created_at = models.DateTimeField(default=datetime.now, null=False)
+
+    class Meta:
+        ordering = ['created_at']
+        db_table = "applicant_liked_vacancies"

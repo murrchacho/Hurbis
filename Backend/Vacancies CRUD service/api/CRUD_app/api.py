@@ -1,12 +1,13 @@
 from datetime import datetime
+from re import A
 from ninja import Router
 from . import schemas
-from .models import Vacancy
+from .models import Vacancy, ApplicantLikedVacancies
 from typing import List
 from asgiref.sync import sync_to_async
 import json
-from .decorators.company_check import company_only
-from CRUD_app.custom_response.responses import CustomJsonResponse
+from CRUD_app.access_control.decorators import applicant_only, company_only, company_or_hr_only
+from CRUD_app.custom_response import CustomJsonResponse
 
 
 router = Router()
@@ -29,33 +30,51 @@ async def update(request, vacancy_id:int, payload: schemas.VacancyInScheme):
 
     except Vacancy.DoesNotExist as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, description='Похоже, что такой вакансии не существует')
+        return CustomJsonResponse(
+            success=False, 
+            description='Похоже, что такой вакансии не существует'
+        )
 
     except Exception as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, description='Что-то пошло не так при обновлении вакансии')
+        return CustomJsonResponse(
+            success=False, 
+            description='Что-то пошло не так при обновлении вакансии'
+        )
 
 
 @router.delete("/{int:vacancy_id}")
 @company_only
 async def delete(request, vacancy_id:int):
     try:
-        await Vacancy.objects.filter(id=vacancy_id, user_id=request.user['username']).adelete()
+        await Vacancy.objects.filter(
+            id=vacancy_id, 
+            user_id=request.user['username']
+        ).adelete()
         return CustomJsonResponse()
         
     except Vacancy.DoesNotExist as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, description='Похоже, что такой вакансии не существует')
+        return CustomJsonResponse(
+            success=False,
+            description='Похоже, что такой вакансии не существует'
+        )
 
     except Exception as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, description='Что-то пошло не так при обновлении вакансии')
+        return CustomJsonResponse(
+            success=False,
+            description='Что-то пошло не так при обновлении вакансии'
+        )
 
 
 @router.get("/{str:company}", response=List[schemas.VacancyOutScheme])
+@applicant_only
 async def read(request, company: str):
     try:
-        return await Vacancy.objects.filter(company=request.data[company])
+        return await Vacancy.objects.filter(
+            company=request.data[company]
+        )
 
     except Exception as e:
         print(repr(e))
@@ -73,10 +92,14 @@ async def create(request, payload: schemas.VacancyInScheme):
 
     except Exception as e:
         print(repr(e))
-        return CustomJsonResponse(success=False, description='Что-то пошло не так при создании вакансии')
+        return CustomJsonResponse(
+            success=False,
+            description='Что-то пошло не так при создании вакансии'
+        )
 
 
 @router.get("", response=List[schemas.VacancyOutScheme])
+@applicant_only
 async def read(request):
     try:
         return await sync_to_async(list)(Vacancy.objects.all())
@@ -86,8 +109,50 @@ async def read(request):
         return None
 
 
-@router.post("/like/{int:vacancy_id}")
-async def like(request, vacancy_id:int):
-    username = request.user['username']
-    Vacancy.objects.aget(id=vacancy_id)
-    return {"success":True}
+@router.post("/match/{int:vacancy_id}")
+@applicant_only
+async def match(request, vacancy_id:int):
+    try:
+        username = request.user['username']
+        vacancy = await Vacancy.objects.filter(id=vacancy_id).afirst()
+        applicant_liked_vacancy = await ApplicantLikedVacancies.objects.filter(
+                                            username=username
+                                        ).afirst()
+
+        if vacancy:
+            if applicant_liked_vacancy:
+                if not {'vacancy_id': vacancy.id} in applicant_liked_vacancy.liked_vacancies:
+                    liked_vacancies  = applicant_liked_vacancy.liked_vacancies + [{'vacancy_id':vacancy.id}]
+                    await ApplicantLikedVacancies.objects.filter(
+                        username=username
+                    ).aupdate(
+                        liked_vacancies=liked_vacancies)
+                else:
+                    return CustomJsonResponse(
+                        success=False,
+                        status_code=400,
+                        description='Match для данной вакансии уже установлен'
+                    )
+            else:
+                await ApplicantLikedVacancies.objects.acreate(
+                    username=username,
+                    liked_vacancies=[{'vacancy_id':vacancy.id}]
+                )
+
+            return CustomJsonResponse()
+
+        else:
+            return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Похоже, что такой вакансии не существует'
+        ) 
+            
+
+    except Exception as e:
+        print(repr(e))
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Неизвестная ошибка при попытке установить match для данной вакансии'
+        )

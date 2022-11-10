@@ -29,9 +29,7 @@ class CV(MongoDBMixin):
     work_experience = models.ArrayField(
         model_container = WorkEmbedded
     )
-    likes = models.ArrayField(
-        model_container = LikesEmbedded
-    )
+
     relocation_ready_country = models.BooleanField(default=False)
     relocation_ready_city = models.BooleanField( default=False)
     
@@ -41,3 +39,16 @@ class CV(MongoDBMixin):
     class Meta:
         ordering = ['-created_at']
         db_table = "CVs"
+
+
+class HRLikedCVs(MongoDBMixin):
+    username = models.CharField(max_length=100, null=False)
+    liked_cvs = models.ArrayField(
+        model_container = LikedCVsEmbedded
+    )
+
+    created_at = models.DateTimeField(default=datetime.now, null=False)
+
+    class Meta:
+        ordering = ['created_at']
+        db_table = "hr_liked_cvs"

@@ -1,12 +1,12 @@
 from datetime import datetime
 from ninja import Router
 from . import schemas
-from .models import CV
+from .models import CV, HRLikedCVs
 from typing import List
 from asgiref.sync import sync_to_async
 import json
 from CRUD_app.custom_response import CustomJsonResponse
-from .decorators.applicant_check import applicant_only
+from CRUD_app.access_control.decorators import applicant_only, hr_only
 
 
 
@@ -79,5 +79,46 @@ async def read(request):
         return None
 
 
+@router.post("/match/{int:CV_id}")
+@hr_only
+async def match(request, CV_id:int):
+    try:
+        username = request.user['username']
+        cv = await CV.objects.filter(id=CV_id).afirst()
+        hr_liked_cv = await HRLikedCVs.objects.filter(username=username).afirst()
 
+        if cv:
+            if hr_liked_cv:
+                if not {'cv_id': cv.id} in hr_liked_cv.liked_cvs:
+                    liked_cvs  = hr_liked_cv.liked_cvs + [{'cv_id':cv.id}]
+                    await HRLikedCVs.objects.filter(
+                        username=username
+                    ).aupdate(liked_cvs=liked_cvs)
+                else:
+                    return CustomJsonResponse(
+                        success=False,
+                        status_code=400,
+                        description='Match для данного резюме уже установлен'
+                    )
+            else:
+                await HRLikedCVs.objects.acreate(
+                    username=username,
+                    liked_cvs=[{'cv_id':cv.id}]
+                )
 
+            return CustomJsonResponse()
+
+        else:
+            return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Похоже, что такого резюме не существует'
+        ) 
+
+    except Exception as e:
+        print(repr(e))
+        return CustomJsonResponse(
+            success=False,
+            status_code=400,
+            description='Неизвестная ошибка при попытке установить match для данного резюме'
+        )

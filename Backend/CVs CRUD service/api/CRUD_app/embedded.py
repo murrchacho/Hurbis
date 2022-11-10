@@ -77,8 +77,8 @@ class SkillsEmbedded(models.Model):
         managed=False
 
 
-class LikesEmbedded(models.Model):
-    userid = models.CharField(max_length=50, default='', primary_key=True)
+class LikedCVsEmbedded(models.Model):
+    cv_id = models.IntegerField(null=False, primary_key=True)
 
     class Meta:
         managed=False
