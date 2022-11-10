@@ -2,13 +2,16 @@ import os
 from os.path import join, dirname
 from dotenv import load_dotenv
 
+#Сбор переменных окружения из .env файла
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
-
 
 from pathlib import Path
 from .databases_settings import *
 from .jwt import *
+
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

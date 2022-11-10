@@ -1,6 +1,6 @@
+from datetime import datetime
 from djongo import models
 from .mixins import MongoDBMixin
-from datetime import datetime
 from .embedded import *
 
 

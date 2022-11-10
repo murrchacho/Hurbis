@@ -1,4 +1,3 @@
-from enum import unique
 from djongo import models
 from .mixins import MongoDBMixin
 from datetime import datetime
