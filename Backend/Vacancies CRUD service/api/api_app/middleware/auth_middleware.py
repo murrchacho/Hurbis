@@ -18,7 +18,7 @@ def CookiesCheckMiddleware(get_response):
             if data['meta']['success'] == False:
                 return CustomJsonResponse(
                     success=False,
-                    description=data['meta']['description'] or '''При попытке проверить токены произошла ошибка на сервере авторизации''',
+                    description=data['meta']['description'] or 'При попытке проверить токены произошла ошибка на сервере авторизации',
                     status_code=400
                 )
                 

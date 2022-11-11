@@ -62,7 +62,7 @@ def get_user_info_from_cookie(request):
 
 
 async def return_response_with_cookies(user):
-    response = CustomJsonResponse()
+    response = CustomJsonResponse(data={'data':{'username':user.username}, 'meta':{}})
     response = await create_tokens_for_user(user, response)
     return response
 
@@ -77,8 +77,8 @@ async def create_tokens_for_user(user: User, response: CustomJsonResponse) -> Cu
         }
 
         #redis_instance.set(user.id, data["refresh"])
-        response = set_cookies(response, 'access' , 'ACCESS_COOKIE', 'ACCESS_TOKEN', data)
-        response = set_cookies(response, 'refresh', 'REFRESH_COOKIE', 'ACCESS_TOKEN', data)
+        response = set_cookies(response, 'access' , 'ACCESS_COOKIE', 'ACCESS_COOKIE_HTTP_ONLY', 'ACCESS_TOKEN', data)
+        response = set_cookies(response, 'refresh', 'REFRESH_COOKIE', 'AUTH_COOKIE_HTTP_ONLY', 'ACCESS_TOKEN', data)
 
         return response
 
@@ -86,7 +86,7 @@ async def create_tokens_for_user(user: User, response: CustomJsonResponse) -> Cu
         print(repr(e))
 
 
-def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token_name: str, data: dict) -> CustomJsonResponse:
+def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, http_only: str, token_name: str, data: dict) -> CustomJsonResponse:
     '''Устанавливает JWT-токены в http-only куки в response.'''
     try:
         response.set_cookie(
@@ -94,8 +94,8 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
                 value = data[type],
                 expires = settings.SIMPLE_JWT[f'{token_name}_LIFETIME'],
                 secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                httponly = settings.SIMPLE_JWT[http_only],
+                samesite = None
                 )
         return response
 

@@ -17,7 +17,7 @@ const Login = () => {
       axios.post('api/auth/login', { username: props.username, password: props.password })
                 .then((response)=>{
                   if(response.status == 200 && response.data != null){
-                    signin(response.data, () => navigate(fromPage, {replace: true}));
+                    signin(response.data.data, () => navigate(fromPage, {replace: true}));
                   }
                   else alert('Неправильно ты, дядя Федор, форму заполняешь..')
                 });

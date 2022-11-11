@@ -13,7 +13,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         if not self.room:
             data={'users':{}}
-            data['users']=[{'username':'user_applicant'}]
+            data['users']=[{'username': self.scope['username']}]
             await Chat.objects.acreate(**data)
         
         self.room_group_name = f'chat_{self.room.id}'

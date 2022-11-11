@@ -5,8 +5,8 @@ const Homepage = () => {
     let value = useContext(HOCs.AuthContext);
     return (
       <div>
-        Добро пожаловать {value.data.user
-                          ? value.data.user
+        Добро пожаловать {value.data.username
+                          ? value.data.username
                           : "странник"
                           }
       </div>

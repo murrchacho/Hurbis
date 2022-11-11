@@ -3,7 +3,7 @@ import axios from 'axios';
 
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
-const chatSocket = new WebSocket('ws://localhost:8030/ws/chat/ff')
+const chatSocket = new WebSocket('ws://localhost:8030/chat/1')
 
 const Chat = () => {
     const [message, setMessage] = useState('');
