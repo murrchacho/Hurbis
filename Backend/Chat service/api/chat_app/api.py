@@ -1,4 +1,3 @@
-from typing import List
 from asgiref.sync import sync_to_async
 from ninja import Router
 from . import schemas

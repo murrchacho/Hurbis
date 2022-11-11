@@ -7,7 +7,7 @@ from ninja import Router
 from . import schemas
 from .models import ApplicantProfile, CompanyProfile, HRProfile
 from .custom_response import CustomJsonResponse
-from .cookies import return_response_with_cookies, get_user_from_cookie, get_info_about_user
+from .cookies import return_response_with_cookies, get_user_info_from_cookie
 #from redis.instance import redis_instance
 
 
@@ -59,15 +59,12 @@ async def logout(request):
 async def check_tokens(request):
     '''Валидация токенов'''
     try:
-        userid, error = get_user_from_cookie(request)
+        user_info, error = get_user_info_from_cookie(request)
 
         if error:
             return CustomJsonResponse(success=False, status_code=400, description=error)
-            
-        user = await User.objects.filter(id=userid).afirst()
-        user_info = await get_info_about_user(user)
 
-        return CustomJsonResponse(data=user_info)
+        return CustomJsonResponse(data={'data':user_info, 'meta':{}})
 
     except User.DoesNotExist as e:
         print(repr(e))
@@ -82,7 +79,7 @@ async def check_tokens(request):
 async def account_type(request, payload: schemas.AccountTypeScheme):
     '''Выбор типа аккаунта'''
     try:
-        userid, error = get_user_from_cookie(request)
+        userid, error = get_user_info_from_cookie(request)
         if error:
             return CustomJsonResponse(success=False, status_code=400, description=error)
 

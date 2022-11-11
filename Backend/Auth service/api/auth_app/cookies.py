@@ -1,7 +1,9 @@
 import os
+from urllib import request
 import jwt
+from typing import Any, Optional, Tuple, Type, Union
 from django.contrib.auth import get_user_model
-from ninja_jwt.tokens import RefreshToken
+from ninja_jwt.tokens import RefreshToken, Token
 from api_app.settings_folder import settings
 from .models import CompanyProfile, HRProfile
 from .custom_response import CustomJsonResponse
@@ -12,11 +14,45 @@ from .custom_response import CustomJsonResponse
 
 User = get_user_model()
 
+class CustomRefreshToken(RefreshToken):
+    @classmethod
+    async def for_user(cls, user: Type[User]) -> Union["Token", Type["Token"]]:
+        """
+        Returns an authorization token for the given user that will be provided
+        after authenticating the user's credentials.
+        """
+        username = getattr(user, 'username')
+        account_type = getattr(user, 'account_type')
+        
+        token = cls()
+        token["username"] = username
+        token["account_type"] = account_type
 
-def get_user_from_cookie(request):
+        company = None
+        if account_type == 'company': 
+            company = await CompanyProfile.objects.filter(userid=user.id).afirst()
+        elif account_type == 'hr':
+            hr = await HRProfile.objects.filter(userid=user.id).select_related('companyid').afirst()
+            company = await CompanyProfile.objects.filter(id=hr.companyid.id).afirst()
+
+        if company:
+            token['company'] = company.company_name 
+        else:
+            token['company'] = None
+
+        return token
+
+
+def get_user_info_from_cookie(request):
     try:
         if settings.SIMPLE_JWT['ACCESS_COOKIE'] in request.COOKIES:
-            return jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))['user_id'], None
+            token_info = jwt.decode(request.COOKIES[settings.SIMPLE_JWT['ACCESS_COOKIE']], os.environ.get("SECRET_KEY"), algorithms=os.environ.get("ALGORITHM"))
+            user_data = {}
+            user_data['username'] = token_info['username']
+            user_data['account_type'] = token_info['account_type']
+            user_data['company'] = token_info['company']
+
+            return user_data, None
         else:
             return None, 'Пожалуйста, выполните вход в аккаунт'
 
@@ -26,16 +62,15 @@ def get_user_from_cookie(request):
 
 
 async def return_response_with_cookies(user):
-    user_info = await get_info_about_user(user)
-    response = CustomJsonResponse(data=user_info)
-    response = create_tokens_for_user(user, response)
+    response = CustomJsonResponse()
+    response = await create_tokens_for_user(user, response)
     return response
 
 
-def create_tokens_for_user(user: User, response: CustomJsonResponse) -> CustomJsonResponse:
-    '''Создает JWT-токены для пользователя и возвращает их в response.'''
+async def create_tokens_for_user(user: User, response: CustomJsonResponse) -> CustomJsonResponse:
+    '''Создает JWT-токены для пользователя и устанавливает их в response.'''
     try:
-        refresh = RefreshToken.for_user(user)
+        refresh = await CustomRefreshToken.for_user(user)
         data = {
             'refresh': str(refresh),
             'access': str(refresh.access_token),
@@ -66,21 +101,3 @@ def set_cookies(response: CustomJsonResponse, type: str, cookie_name: str, token
 
     except Exception as e:
         print(repr(e))
-
-
-async def get_info_about_user(user: User) -> dict:
-    '''Возвращает дополнительную информацию о профиле пользователя.'''
-    company = None
-    data = {'data':{}, 'meta':{}}
-    if user.account_type == 'company': 
-        company = await CompanyProfile.objects.filter(userid=user.pk).afirst()
-    elif user.account_type == 'hr':
-        hr = await HRProfile.objects.filter(userid=user.pk).select_related('companyid').afirst()
-        company = await CompanyProfile.objects.filter(id=hr.companyid.id).afirst()
-    if company:
-        data['data']['company'] = company.company_name 
-
-    data['data']['username'] = user.username
-    data['data']['account_type'] = user.account_type
-
-    return data
