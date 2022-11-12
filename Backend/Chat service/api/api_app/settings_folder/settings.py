@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'chat_app',
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE = [ 
+    'api_app.middleware.auth_middleware.CookiesCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',

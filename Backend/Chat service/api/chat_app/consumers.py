@@ -29,8 +29,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         #print(self.scope['headers'])
         data={}
         data['chat_id']=self.room
-        data['message']={'user': 'user_applicant', 'body': message}
-        await Messages.objects.acreate(**data)
+        data['content']={'user': 'user_applicant', 'message': message}
+        await Message.objects.acreate(**data)
 
         await self.channel_layer.group_send(
             self.room_group_name,

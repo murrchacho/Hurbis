@@ -1,11 +1,11 @@
-from email.message import Message
 from ninja import Schema
 from ninja import ModelSchema
-from .models import Messages
-
+from .models import Chat, Message
+from ninja import ModelSchema
 
 
 
 class PaginationScheme(Schema):
     current_position: int
     offset: int
+

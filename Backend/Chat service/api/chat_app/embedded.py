@@ -5,7 +5,7 @@ from .mixins import MongoDBMixin
 
 
 
-class MessagesEmbedded(MongoDBMixin):
+class ContentEmbedded(MongoDBMixin):
     user = models.CharField(max_length=50, default='', primary_key=True)
     body = models.CharField(max_length=10000, default='')
 

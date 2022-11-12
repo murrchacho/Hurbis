@@ -1,7 +1,7 @@
 from datetime import datetime
 from djongo import models
 from .mixins import MongoDBMixin
-from .embedded import MessagesEmbedded, UsersEmbedded
+from .embedded import ContentEmbedded, UsersEmbedded
 
 
 
@@ -18,11 +18,11 @@ class Chat(MongoDBMixin):
         db_table = "chats"
 
 
-class Messages(MongoDBMixin):
-    chat_id = models.IntegerField(null=False) 
+class Message(MongoDBMixin):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE) 
     timestamp = models.DateTimeField(default=datetime.now, null=False)
-    message = models.EmbeddedField(
-        model_container = MessagesEmbedded
+    content = models.EmbeddedField(
+        model_container = ContentEmbedded
     )
 
     class Meta:

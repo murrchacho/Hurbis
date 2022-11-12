@@ -1,23 +1,38 @@
 from asgiref.sync import sync_to_async
+
 from ninja import Router
+
 from . import schemas
-from .models import Chat, Messages
+from .models import Chat, Message
 from .custom_response import CustomJsonResponse
 #from redis.instance import redis_instance
-from djongo import database
-import json
+
+
+
 
 
 router = Router()
 
 @router.get('/get-chats')
 def get_chats(request):
-    print(Chat.objects.filter(users__contains=[{'username':'user_applicant'}]).first())
-    return None
+    chats = Chat.objects.filter(
+        users__in=[{'username':request.user['username']}]
+    ).prefetch_related('message_set').all()
+    
+    response=[]
+    for chat in chats:
+        messages = chat.message_set.values().all()
+        response.append(
+            {'chat':chat.id, 'messages':list(messages)}
+        )
+
+    return response
+
 
 @router.get('/chat-get-messages/{int:chat_id}')
 async def chat_get_messages():
     pass
+
 
 @router.post('/paginate/{int:chat_id}')
 async def paginate(request, chat_id: int, payload: schemas.PaginationScheme):
@@ -26,7 +41,7 @@ async def paginate(request, chat_id: int, payload: schemas.PaginationScheme):
         current_position = data['current_position']
         offset = data['offset']
         messages = await sync_to_async(list)(
-            Messages.objects.filter(
+            Message.objects.filter(
                 chat_id=chat_id
         ).order_by('id').values().all()[current_position:offset])
         current_position = current_position + offset
