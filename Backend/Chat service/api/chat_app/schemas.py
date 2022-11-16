@@ -9,3 +9,8 @@ class PaginationScheme(Schema):
     current_position: int
     offset: int
 
+class UsersScheme(Schema):
+    username: str
+    
+class UsersChatScheme(Schema):
+    users: list[UsersScheme]

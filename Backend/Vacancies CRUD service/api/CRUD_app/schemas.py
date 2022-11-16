@@ -55,6 +55,9 @@ class VacancyInScheme(Schema):
 
 class VacancyOutScheme(VacancyInScheme):
     id: str
-    user_id: str
-    likes: None
+    username: str
     
+
+class VacancyCheckExistenseScheme(Schema):
+    username: str
+    vacancy_id: int

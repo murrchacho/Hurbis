@@ -29,9 +29,11 @@ def get_chats(request):
     return response
 
 
-@router.get('/chat-get-messages/{int:chat_id}')
-async def chat_get_messages():
-    pass
+@router.post('/create-chat')
+async def create_chat(request, payload: schemas.UsersChatScheme):
+    data = payload.dict()
+    await Chat.objects.acreate(**data)
+    return CustomJsonResponse()
 
 
 @router.post('/paginate/{int:chat_id}')

@@ -12,9 +12,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.messages = []
         
         if not self.room:
-            data={'users':{}}
-            data['users']=[{'username': self.scope['username']}]
-            await Chat.objects.acreate(**data)
+            return None
         
         self.room_group_name = f'chat_{self.room.id}'
         await self.channel_layer.group_add(

@@ -19,6 +19,14 @@ class DateTimeEncoder(json.JSONEncoder):
             return o.isoformat()
         return json.JSONEncoder.default(self, o)
 
+@router.post("/check-existence")
+def check_existence(request, payload: schemas.CVCheckExistenseScheme):
+    data = payload.dict()
+    r = CV.objects.filter(id=data['cv_id'], username=data['username'])
+    if r:
+        return CustomJsonResponse()
+    else: 
+        return CustomJsonResponse(success=False)
 
 @router.put("/{CV_id}")
 @applicant_only
@@ -42,7 +50,7 @@ async def update(request, CV_id:int, payload: schemas.CVInScheme):
 @applicant_only
 async def delete(request, CV_id:int):
     try:
-        await CV.objects.filter(id=CV_id, user_id=request.user['username']).adelete()
+        await CV.objects.filter(id=CV_id, username=request.user['username']).adelete()
         return CustomJsonResponse()
         
     except CV.DoesNotExist as e:
@@ -59,7 +67,7 @@ async def delete(request, CV_id:int):
 async def create(request, payload: schemas.CVInScheme):
     try:
         data = payload.dict()
-        data['user_id'] = request.user['username']
+        data['username'] = request.user['username']
         await CV.objects.acreate(**data)
         return CustomJsonResponse()
 

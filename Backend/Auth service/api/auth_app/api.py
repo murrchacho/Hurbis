@@ -39,7 +39,6 @@ async def registration(request, payload: schemas.RegistrationInScheme):
 
 @router.post('/login')
 async def login(request, payload: schemas.LoginInScheme):
-
     credentials = payload.dict()
     user, error = await User.objects.login(credentials)
 

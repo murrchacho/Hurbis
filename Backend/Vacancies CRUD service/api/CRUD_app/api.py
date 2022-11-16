@@ -1,14 +1,15 @@
+import json
 from datetime import datetime
-from re import A
+from sre_constants import SUCCESS
 from ninja import Router
+from django.core.cache import cache
 from . import schemas
 from .models import Vacancy, ApplicantLikedVacancies
 from typing import List
 from asgiref.sync import sync_to_async
-import json
 from CRUD_app.access_control.decorators import applicant_only, company_only, company_or_hr_only
 from CRUD_app.custom_response import CustomJsonResponse
-
+from api_app import shared
 
 router = Router()
 
@@ -17,6 +18,26 @@ class DateTimeEncoder(json.JSONEncoder):
         if isinstance(o, datetime):
             return o.isoformat()
         return json.JSONEncoder.default(self, o)
+
+
+@router.get("/get-liked-vacancies", response=List[schemas.VacancyOutScheme])
+def get_liked_vacancies(request):
+    username = request.user['username']
+    liked_vacancies = ApplicantLikedVacancies.objects.filter(username=username).values('liked_vacancies')
+    ids = [
+        item['vacancy_id'] for item in liked_vacancies[0]['liked_vacancies']
+    ]
+    
+    return Vacancy.objects.filter(id__in=ids)
+
+@router.post("/check-existence")
+def check_existence(request, payload: schemas.VacancyCheckExistenseScheme):
+    data = payload.dict()
+    r = Vacancy.objects.filter(id=data['vacancy_id'], username=data['username'])
+    if r:
+        return CustomJsonResponse()
+    else: 
+        return CustomJsonResponse(success=False)
 
 
 @router.put("/{int:vacancy_id}")
@@ -49,7 +70,7 @@ async def delete(request, vacancy_id:int):
     try:
         await Vacancy.objects.filter(
             id=vacancy_id, 
-            user_id=request.user['username']
+            username=request.user['username']
         ).adelete()
         return CustomJsonResponse()
         
@@ -86,7 +107,7 @@ async def read(request, company: str):
 async def create(request, payload: schemas.VacancyInScheme):
     try:
         data = payload.dict()
-        data['user_id'] = request.user['username']
+        data['username'] = request.user['username']
         await Vacancy.objects.acreate(**data)
         return CustomJsonResponse()
 
@@ -107,7 +128,7 @@ async def read(request):
     except Exception as e:
         print(repr(e))
         return None
-
+        
 
 @router.post("/match/{int:vacancy_id}")
 @applicant_only
@@ -118,6 +139,8 @@ async def match(request, vacancy_id:int):
         applicant_liked_vacancy = await ApplicantLikedVacancies.objects.filter(
                                             username=username
                                         ).afirst()
+
+        shared.REDIS_SESSION.sadd(username, f'{vacancy.username}:{vacancy_id}')
 
         if vacancy:
             if applicant_liked_vacancy:
@@ -138,6 +161,14 @@ async def match(request, vacancy_id:int):
                     username=username,
                     liked_vacancies=[{'vacancy_id':vacancy.id}]
                 )
+
+            key = f"{username}_{vacancy.username}"
+            reverse_key = f"{vacancy.username}_{username}"
+            await cache.aadd(key, vacancy_id, timeout=None)
+
+            if await cache.ahas_key(reverse_key):
+                await cache.aadd(key, "", timeout=None)
+                return "Похоже возникла симпатия =). Создаем чат, направляем сообщения в сервис уведомлений"
 
             return CustomJsonResponse()
 

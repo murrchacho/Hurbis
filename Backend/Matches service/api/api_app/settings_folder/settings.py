@@ -3,17 +3,8 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 from pathlib import Path
 
-
-
-#Сбор переменных окружения из .env файла
 dotenv_path = join(dirname(__file__), '.env')
 load_dotenv(dotenv_path)
-
-from .databases_settings import *
-from .redis_settings import REDIS_LINK
-
-
-
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +16,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -35,28 +25,21 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
-    'CRUD_app',
+    'matches_app',
 ]
-
-CACHES = {
-    "default": {
-        "BACKEND": 'django.core.cache.backends.redis.RedisCache',
-        "LOCATION": REDIS_LINK,
-    }
-}
 
 MIDDLEWARE = [
     'api_app.middleware.auth_middleware.CookiesCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
-    #'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'api_app.urls'
 
 WSGI_APPLICATION = 'api_app.wsgi.application'
-ASGI_APPLICATION = 'api_app.asgi.application'
+ASGI_APPLICATION = 'api_app.wsgi.application'
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -98,7 +81,3 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-ACCESS_COOKIE =  os.environ.get("ACCESS_COOKIE")
-
-REFRESH_COOKIE = os.environ.get("REFRESH_COOKIE")
