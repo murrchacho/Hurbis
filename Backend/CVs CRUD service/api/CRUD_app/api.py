@@ -13,11 +13,6 @@ from CRUD_app.access_control.decorators import applicant_only, hr_only
 
 router = Router()
 
-class DateTimeEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime):
-            return o.isoformat()
-        return json.JSONEncoder.default(self, o)
 
 @router.post("/check-existence")
 def check_existence(request, payload: schemas.CVCheckExistenseScheme):
@@ -74,8 +69,7 @@ async def create(request, payload: schemas.CVInScheme):
     except Exception as e:
         print(repr(e))
         return CustomJsonResponse(success=False, description='Что-то пошло не так при создании резюме')
-
-
+        
 @router.get("", response=List[schemas.CVOutScheme])
 @applicant_only
 async def read(request):
@@ -85,48 +79,11 @@ async def read(request):
     except Exception as e:
         print(repr(e))
         return None
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+        return json.JSONEncoder.default(self, o)
 
 
-@router.post("/match/{int:CV_id}")
-@hr_only
-async def match(request, CV_id:int):
-    try:
-        username = request.user['username']
-        cv = await CV.objects.filter(id=CV_id).afirst()
-        hr_liked_cv = await HRLikedCVs.objects.filter(username=username).afirst()
 
-        if cv:
-            if hr_liked_cv:
-                if not {'cv_id': cv.id} in hr_liked_cv.liked_cvs:
-                    liked_cvs  = hr_liked_cv.liked_cvs + [{'cv_id':cv.id}]
-                    await HRLikedCVs.objects.filter(
-                        username=username
-                    ).aupdate(liked_cvs=liked_cvs)
-                else:
-                    return CustomJsonResponse(
-                        success=False,
-                        status_code=400,
-                        description='Match для данного резюме уже установлен'
-                    )
-            else:
-                await HRLikedCVs.objects.acreate(
-                    username=username,
-                    liked_cvs=[{'cv_id':cv.id}]
-                )
-
-            return CustomJsonResponse()
-
-        else:
-            return CustomJsonResponse(
-            success=False,
-            status_code=400,
-            description='Похоже, что такого резюме не существует'
-        ) 
-
-    except Exception as e:
-        print(repr(e))
-        return CustomJsonResponse(
-            success=False,
-            status_code=400,
-            description='Неизвестная ошибка при попытке установить match для данного резюме'
-        )

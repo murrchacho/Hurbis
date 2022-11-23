@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import * as HOCs from '../Components/HOCs/All';
+import * as HOCs from '../HOCs/All';
 
 const Homepage = () => {
     let value = useContext(HOCs.AuthContext);

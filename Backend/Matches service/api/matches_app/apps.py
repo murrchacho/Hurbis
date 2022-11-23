@@ -1,7 +1,11 @@
+import redis 
 from django.apps import AppConfig
 from api_app.settings_folder import redis_settings
-import redis 
 from api_app import shared 
+
+
+
+
 class MatchesAppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'matches_app'

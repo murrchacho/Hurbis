@@ -3,7 +3,7 @@ import { React } from 'react';
 import { Routes, Route } from 'react-router-dom'
 import * as Components from './Components/All'
 import * as HOCs from './Components/HOCs/All';
-
+import './Sass/index.scss'
 function App() {
   return (
     <div className="App">

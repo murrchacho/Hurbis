@@ -54,7 +54,7 @@ async def logout(request):
     return HttpResponse("Сделаем вид, что мы инвалидировали текущие куки =)")
 
 
-@router.post('/check-tokens')
+@router.post('/tokens-check')
 async def check_tokens(request):
     '''Валидация токенов'''
     try:

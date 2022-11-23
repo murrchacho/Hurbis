@@ -12,18 +12,18 @@ const Vacancies = () => {
   }, []);
 
   const getVacancies = () => {
-    axios.get('api/vacancies/').then((response) => {
+    axios.get('vacancies/api/v1').then((response) => {
       setData(response.data)
     })
   }
 
   const deleteVacancy = (vacancyId) => {
-    axios.delete(`api/vacancies/${vacancyId}`
+    axios.delete(`vacancies/api/v1/${vacancyId}`
     ).then(() => getVacancies());
   }
 
   const createVacancy = (props) => {
-    axios.post('api/vacancies/', { title: props.text }
+    axios.post('vacancies/api/v1', { title: props.text }
     ).then(() => getVacancies());
   }
 

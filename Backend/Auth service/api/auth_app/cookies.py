@@ -38,7 +38,7 @@ class CustomRefreshToken(RefreshToken):
         if company:
             token['company'] = company.company_name 
         else:
-            token['company'] = None
+            token['company'] = ""
 
         return token
 

@@ -4,7 +4,7 @@ from ninja import Router
 from .custom_response import CustomJsonResponse
 from api_app import shared
 from . import schemas
-#from redis.instance import redis_instance
+
 
 
 
@@ -58,13 +58,12 @@ async def match(request, post_id:int, payload:schemas.PostCheckScheme):
             )
             #Notify-microservice: 'Match уже установлен'
 
+        json_obj = {}
+        json_obj['username']=user_for_match
+        json_obj['cv_id']=post_id
+        payload = json.dumps(json_obj)
+
         if account_type == 'applicant':
-            json_obj = {}
-            json_obj['username']=user_for_match
-            json_obj['vacancy_id']=post_id
-
-            payload = json.dumps(json_obj)
-
             response = await make_request(
                 request = request,
                 service_link = os.environ.get("VACANCIES_MICROSERVICE_URL"),
@@ -72,12 +71,6 @@ async def match(request, post_id:int, payload:schemas.PostCheckScheme):
                 payload = payload
             )
         elif account_type == 'hr' or 'company':
-            json_obj = {}
-            json_obj['username']=user_for_match
-            json_obj['cv_id']=post_id
-
-            payload = json.dumps(json_obj)
-
             response = await make_request(
                 request = request,
                 service_link = os.environ.get("CVS_MICROSERVICE_URL"),
@@ -100,8 +93,6 @@ async def match(request, post_id:int, payload:schemas.PostCheckScheme):
                 status_code=400
             )
 
-
-        
         shared.REDIS_SESSION.sadd(
             f"{username}_liked_posts",
             post_id
@@ -110,9 +101,6 @@ async def match(request, post_id:int, payload:schemas.PostCheckScheme):
             f"{username}_liked_users",
             user_for_match
         )
-
-
-
 
     except Exception as e:
         print(repr(e))

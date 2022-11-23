@@ -1,6 +1,6 @@
 import { Link, Outlet } from 'react-router-dom'
 import { useContext } from 'react';
-import * as HOCs from '../Components/HOCs/All';
+import * as HOCs from '../HOCs/All';
 
 const Layout = () => {
     const value = useContext(HOCs.AuthContext);

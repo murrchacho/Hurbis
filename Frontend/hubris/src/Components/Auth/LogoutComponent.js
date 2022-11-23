@@ -1,23 +1,25 @@
 import React from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from './hooks/All';
+import { useAuth } from '../hooks/All';
+import { useContext } from 'react';
+import * as HOCs from '../HOCs/All';
 
 axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
 axios.defaults.xsrfCookieName = "csrftoken";
 
-const Login = () => {
+const Logout = () => {
+    const value = useContext(HOCs.AuthContext);
     const navigate = useNavigate();
     const locaiton = useLocation();
-    const {signin} = useAuth();
-
+    const {signout} = useAuth();
     const fromPage = locaiton.state?.from?.pathname || '/';
 
-    const login = (props) => {
-      axios.post('api/auth/login', { username: props.username, password: props.password })
+    const logout = () => {
+      axios.post('auth/api/v1/logout', { username: value.data.user })
                 .then((response)=>{
                   if(response.status == 200 && response.data != null){
-                    signin(response.data.data, () => navigate(fromPage, {replace: true}));
+                    signout(() => navigate("/", {replace: true}));
                   }
                   else alert('Неправильно ты, дядя Федор, форму заполняешь..')
                 });
@@ -25,22 +27,19 @@ const Login = () => {
   
     const handleSubmit = (e) => {
       e.preventDefault();
-      const form = e.target
-      const username = form.username.value;
-      const password = form.password.value;
-      login({username, password});
+      logout();
     }
   
     return (
       <div>
+        Вы уверены, что хотите выйти?
         <form onSubmit={handleSubmit}>
-          <input type="text" name="username"/>
-          <input type="password" name="password"/>
-          <button type="submit">Войти</button>
+          <button type="submit">Да</button>
+          <button type="button" onClick={()=>navigate(fromPage, {replace: true})}>Нет</button>
         </form>
       </div>
     );
   };
   
   
-  export default Login
+  export default Logout
