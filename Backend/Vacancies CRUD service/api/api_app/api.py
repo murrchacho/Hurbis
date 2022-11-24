@@ -3,4 +3,4 @@ from CRUD_app.api import router as CRUD_router
 
 api = NinjaAPI()
 
-api.add_router("vacancies", CRUD_router)
+api.add_router("v1", CRUD_router)

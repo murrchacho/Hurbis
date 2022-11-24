@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 import redis
-from api_app.shared import REDIS_SESSION
+from api_app import shared
 from api_app.settings_folder import settings
 from api_app.settings_folder import redis_settings
 
@@ -12,5 +12,5 @@ class CrudConfig(AppConfig):
     name = 'CRUD_app'
 
     def ready(self) -> None:
-        REDIS_SESSION = redis.Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT, db=0,password=redis_settings.REDIS_PASSWORD)
+        shared.REDIS_SESSION = redis.Redis(host=redis_settings.REDIS_HOST, port=redis_settings.REDIS_PORT, db=0,password=redis_settings.REDIS_PASSWORD)
         return super().ready()

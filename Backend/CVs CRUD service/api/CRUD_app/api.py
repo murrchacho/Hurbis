@@ -17,7 +17,7 @@ router = Router()
 @router.post("/check-existence")
 def check_existence(request, payload: schemas.CVCheckExistenseScheme):
     data = payload.dict()
-    r = CV.objects.filter(id=data['cv_id'], username=data['username'])
+    r = CV.objects.filter(id=data['post_id'], username=data['username'])
     if r:
         return CustomJsonResponse()
     else: 
@@ -70,8 +70,9 @@ async def create(request, payload: schemas.CVInScheme):
         print(repr(e))
         return CustomJsonResponse(success=False, description='Что-то пошло не так при создании резюме')
         
+        
 @router.get("", response=List[schemas.CVOutScheme])
-@applicant_only
+@hr_only
 async def read(request):
     try:
         return await sync_to_async(list)(CV.objects.all())

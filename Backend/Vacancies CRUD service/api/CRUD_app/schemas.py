@@ -60,4 +60,4 @@ class VacancyOutScheme(VacancyInScheme):
 
 class VacancyCheckExistenseScheme(Schema):
     username: str
-    vacancy_id: int
+    post_id: int

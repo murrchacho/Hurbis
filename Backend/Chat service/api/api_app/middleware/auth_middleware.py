@@ -14,7 +14,7 @@ def CookiesCheckMiddleware(get_response):
         if shared.AIOHTTP_SESSION is None:
             shared.AIOHTTP_SESSION = ClientSession()
 
-        async with shared.AIOHTTP_SESSION.post('http://localhost:8000/api/auth/check-tokens', cookies=request.COOKIES) as resp:
+        async with shared.AIOHTTP_SESSION.post('http://localhost:8000/api/v1/tokens-check', cookies=request.COOKIES) as resp:
             data = await resp.json()
 
             if data['meta']['success'] == False:

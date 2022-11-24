@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from sre_constants import SUCCESS
 from ninja import Router
 from django.core.cache import cache
 from . import schemas
@@ -33,7 +32,7 @@ def get_liked_vacancies(request):
 @router.post("/check-existence")
 def check_existence(request, payload: schemas.VacancyCheckExistenseScheme):
     data = payload.dict()
-    r = Vacancy.objects.filter(id=data['vacancy_id'], username=data['username'])
+    r = Vacancy.objects.filter(id=data['post_id'], username=data['username'])
     if r:
         return CustomJsonResponse()
     else: 
@@ -128,62 +127,3 @@ async def read(request):
     except Exception as e:
         print(repr(e))
         return None
-        
-
-@router.post("/match/{int:vacancy_id}")
-@applicant_only
-async def match(request, vacancy_id:int):
-    try:
-        username = request.user['username']
-        vacancy = await Vacancy.objects.filter(id=vacancy_id).afirst()
-        applicant_liked_vacancy = await ApplicantLikedVacancies.objects.filter(
-                                            username=username
-                                        ).afirst()
-
-        shared.REDIS_SESSION.sadd(username, f'{vacancy.username}:{vacancy_id}')
-
-        if vacancy:
-            if applicant_liked_vacancy:
-                if not {'vacancy_id': vacancy.id} in applicant_liked_vacancy.liked_vacancies:
-                    liked_vacancies  = applicant_liked_vacancy.liked_vacancies + [{'vacancy_id':vacancy.id}]
-                    await ApplicantLikedVacancies.objects.filter(
-                        username=username
-                    ).aupdate(
-                        liked_vacancies=liked_vacancies)
-                else:
-                    return CustomJsonResponse(
-                        success=False,
-                        status_code=400,
-                        description='Match для данной вакансии уже установлен'
-                    )
-            else:
-                await ApplicantLikedVacancies.objects.acreate(
-                    username=username,
-                    liked_vacancies=[{'vacancy_id':vacancy.id}]
-                )
-
-            key = f"{username}_{vacancy.username}"
-            reverse_key = f"{vacancy.username}_{username}"
-            await cache.aadd(key, vacancy_id, timeout=None)
-
-            if await cache.ahas_key(reverse_key):
-                await cache.aadd(key, "", timeout=None)
-                return "Похоже возникла симпатия =). Создаем чат, направляем сообщения в сервис уведомлений"
-
-            return CustomJsonResponse()
-
-        else:
-            return CustomJsonResponse(
-            success=False,
-            status_code=400,
-            description='Похоже, что такой вакансии не существует'
-        ) 
-            
-
-    except Exception as e:
-        print(repr(e))
-        return CustomJsonResponse(
-            success=False,
-            status_code=400,
-            description='Неизвестная ошибка при попытке установить match для данной вакансии'
-        )

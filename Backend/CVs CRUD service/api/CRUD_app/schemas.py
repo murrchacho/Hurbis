@@ -51,4 +51,4 @@ class CVOutScheme(CVInScheme):
     
 class CVCheckExistenseScheme(Schema):
     username: str
-    cv_id: int
+    post_id: int
